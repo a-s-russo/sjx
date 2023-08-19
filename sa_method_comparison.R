@@ -6,6 +6,7 @@ library(lubridate) # year
 library(janitor) # clean_names
 library(ggplot2) # plotting
 library(reshape2) # melt
+library(RJDemetra) # RJDemetra
 
 # Define function to download series data and metadata
 download_ts <- function(url) {
@@ -111,6 +112,7 @@ plot_ts <- function(data, meta, type, filename) {
     
     # Extract relevant series metadata for generating required series and for plotting purposes
     X13_type <- ifelse(type == "S", "seasonaladj", "trend")
+    RJD_type <- ifelse(type == "S", "sa", "t")
     plot_type <- ifelse(type == "S", "Seasonally Adjusted", "Trend")
     series_description <- filter(meta, series_id == series_ID_othr[series_index])$data_item_description
     units <- filter(meta, series_id == series_ID_orig[series_index])$unit
@@ -124,8 +126,11 @@ plot_ts <- function(data, meta, type, filename) {
     # Generate X-13ARIMA-SEATS seasonally adjusted/trend series
     X13 <- seas(ABS_orig, x11 = "")$data[, X13_type] # X11 option specifies X-11; overrides the 'seats' spec
     
+    # Generate JDemetra+ seasonally adjusted/trend series
+    RJD <- x13(ABS_orig, spec = "RSA5c")$final$series[, RJD_type]
+    
     # Generate plotting data
-    plot_data <- data.frame("ABS" = as.numeric(ABS), "X13" = as.numeric(X13), "Period" = as.Date(period_range)) %>%
+    plot_data <- data.frame("ABS" = as.numeric(ABS), "X13" = as.numeric(X13), "RJD" = as.numeric(RJD), "Period" = as.Date(period_range)) %>%
       melt(id.vars = c("Period"), value.name = "Value", variable.name = "Method")
     
     # Generate plot
