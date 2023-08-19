@@ -1,18 +1,11 @@
 # Load libraries
-library(readxl)
-library(dplyr)
-library(seasonal)
-library(snakecase)
-library(lubridate)
-library(fansi)
-library(utf8)
-library(cli)
-library(janitor)
-library(tidyverse)
-library(zoo)
-library(ggplot2)
-library(reshape2)
-library(digest)
+library(readxl) # reading in Excel file
+library(dplyr) # rename
+library(seasonal) # X-13ARIMA-SEATS
+library(lubridate) # year
+library(janitor) # clean_names
+library(ggplot2) # plotting
+library(reshape2) # melt
 
 # Define function to download series data and metadata
 download_ts <- function(url) {
@@ -30,7 +23,7 @@ download_ts <- function(url) {
   # Remove irrelevant data
   series_metadata <- series_metadata %>%
     filter(grepl("^[A-Z][a-z]+", `Data Item Description`)) %>% # Discard junk (empty and copyright) rows
-    discard(~all(is.na(.))) %>% # Discard empty columns
+    select_if(~!all(is.na(.))) %>% # Discard empty columns
     clean_names()
   
   # Create common start and end dates across series
@@ -129,7 +122,7 @@ plot_ts <- function(data, meta, type, filename) {
     ABS <- create_ts(data, meta, series_ID_othr[series_index])
     
     # Generate X-13ARIMA-SEATS seasonally adjusted/trend series
-    X13 <- seas(ABS_orig)$data[, X13_type]
+    X13 <- seas(ABS_orig, x11 = "")$data[, X13_type] # X11 option specifies X-11; overrides the 'seats' spec
     
     # Generate plotting data
     plot_data <- data.frame("ABS" = as.numeric(ABS), "X13" = as.numeric(X13), "Period" = as.Date(period_range)) %>%
@@ -154,13 +147,6 @@ plot_ts <- function(data, meta, type, filename) {
 }
 
 # Generate graphs for QBIS key data items
-for (table in c(1, 4, 11, 17)) {
-  series <- download_ts(paste0("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/567600", table, ".xlsx"))
-  plot_ts(series$data, series$meta, type = "S", filename = paste0("QBIS - Table ", table, " - Mar23 - SA"))
-  plot_ts(series$data, series$meta, type = "T", filename = paste0("QBIS - Table ", table, " - Mar23 - TR"))
-}
-
-# Generate graphs for LFS key data items
-series <- download_ts(paste0("https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/jun-2023/6202001.xlsx"))
-plot_ts(series$data, series$meta, type = "S", filename = paste0("LFS - Table 1 - Jun23 - SA"))
-plot_ts(series$data, series$meta, type = "T", filename = paste0("LFS - Table 1 - Jun23 - TR"))
+series <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676001.xlsx")
+plot_ts(series$data, series$meta, type = "S", filename = paste0("QBIS - Table 1 - Mar23 - SA"))
+plot_ts(series$data, series$meta, type = "T", filename = paste0("QBIS - Table 1 - Mar23 - TR"))
