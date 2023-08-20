@@ -5,19 +5,6 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-## Loading required packages
-
-```{r, warning=FALSE, message=FALSE}
-library(dplyr)
-library(ggplot2)
-library(janitor)
-library(lubridate)
-library(readxl)
-library(reshape2)
-library(RJDemetra)
-library(seasonal)
-```
-
 ## Seasonal adjustment and trending
 
 A time series is a collection of well-defined data observed regularly through
@@ -68,6 +55,20 @@ series, such as the series type, units and frequency
 
 * **Data1:** contains the original, seasonally adjusted and trend
 estimates (any other tabs are ignored in this analysis)
+
+## Loading required packages
+
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggtext)
+library(janitor)
+library(lubridate)
+library(readxl)
+library(reshape2)
+library(RJDemetra)
+library(seasonal)
+```
 
 ## Downloading and cleaning the data
 
@@ -123,16 +124,6 @@ download_ts <- function(url) {
 }
 ```
 
-```{r, eval=TRUE, include=FALSE}
-
-# Save downloaded and cleaned data for Table 1 of the March 2023 ABS publication 'Business Indicators, Australia'
-series <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676001.xlsx")
-
-write.csv(series$data, "data/QBIS_2023-03_Table1_data.csv", row.names = FALSE)
-write.csv(series$meta, "data/QBIS_2023-03_Table1_meta.csv", row.names = FALSE)
-
-```
-
 ## Creating the time series
 
 The following functions create the time series data ready to be seasonally
@@ -149,7 +140,10 @@ seasonally adjusted or trend series, it will not be plotted as there is nothing
 to compare.
 
 ```{r}
-create_ts_groups <- function(meta) {
+create_ts_groups <- function(series) {
+  
+  # Extract series metadata
+  meta <- series$meta
   
   # Extract series groups
   unique_series_names <- pull(unique(meta["data_item_description"]))
@@ -188,32 +182,41 @@ The following function creates the time series objects ready for extraction,
 seasonal adjustment/trending, or plotting.
 
 ```{r}
-create_ts <- function(data, meta, name) {
+create_ts <- function(series, name) {
+  
+  # Extract series data and metadata
+  data <- series$data
+  meta <- series$meta
+  
+  # Create common start and end periods
   common_start_year <- filter(meta, series_id == name)$common_start_year
   common_start_month <- filter(meta, series_id == name)$common_start_period
   common_end_year <- filter(meta, series_id == name)$common_end_year
   common_end_month <- filter(meta, series_id == name)$common_end_period
+  
+  # Redefine frequency variable
   freq <- filter(meta, series_id == name)$freq_num
+  
   return(ts(data[, name], start = c(common_start_year, common_start_month), end = c(common_end_year, common_end_month), frequency = freq))
 }
 ```
 
 ## Plotting the time series
 
-The following function plots the seasonally adjusted or trend series produced
-by X-13ARIMA-SEATS or JDemetra+ against the ABS versions and outputs the graphs
-to a PDF file. It requires the data output from the download function above,
-and calls the time series generation functions above during execution.
+The following function plots the seasonally adjusted or trend series produced by
+X-13ARIMA-SEATS or JDemetra+ against the ABS version. It requires the data
+output from the download function above, and calls the time series generation
+functions above during execution.
 
 ```{r}
-plot_ts <- function(data, meta, type, filename) {
+plot_ts <- function(series, type) {
   
-  # Set up output device
-  graphics.off()
-  pdf(paste0(filename, ".pdf"), width = 12, onefile = TRUE)
-
+  # Extract series data and metadata
+  data <- series$data
+  meta <- series$meta
+  
   # Extract groups and series IDs
-  series_groups <- create_ts_groups(meta)
+  series_groups <- create_ts_groups(series)
   series_ID_orig <- series_groups$orig
   if (type == "S") series_ID_othr <- series_groups$seas
   if (type == "T") series_ID_othr <- series_groups$tren
@@ -234,8 +237,8 @@ plot_ts <- function(data, meta, type, filename) {
     period_range <- seq(data$period[1], data$period[nrow(data)], period_type)
     
     # Extract ABS original and seasonally adjusted/trend series
-    ABS_orig <- create_ts(data, meta, series_ID_orig[series_index])
-    ABS <- create_ts(data, meta, series_ID_othr[series_index])
+    ABS_orig <- create_ts(series, series_ID_orig[series_index])
+    ABS <- create_ts(series, series_ID_othr[series_index])
     
     # Generate X-13ARIMA-SEATS seasonally adjusted/trend series
     X13 <- seas(ABS_orig, x11 = "")$data[, X13_type] # X11 option specifies X-11; overrides the 'seats' spec
@@ -243,25 +246,48 @@ plot_ts <- function(data, meta, type, filename) {
     # Generate JDemetra+ seasonally adjusted/trend series
     RJD <- x13(ABS_orig, spec = "RSA5c")$final$series[, RJD_type]
     
-    # Generate plotting data
-    plot_data <- data.frame("ABS" = as.numeric(ABS), "X13" = as.numeric(X13), "RJD" = as.numeric(RJD), "Period" = as.Date(period_range)) %>%
+    # Generate plot data
+    plot_data <- data.frame("ABS" = as.numeric(ABS), "X13" = as.numeric(X13), "RJD" = as.numeric(RJD), "Period" = as.Date(period_range)) |>
       melt(id.vars = c("Period"), value.name = "Value", variable.name = "Method")
     
     # Generate plot
     p <- ggplot(plot_data, aes(x = Period, y = Value, group = Method, colour = Method)) +
       geom_line() +
-      labs(title = series_description, subtitle = paste0(plot_type, "\nUnits: ", units)) +
-      theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
+      labs(title = series_description, subtitle = paste0(plot_type, " (", units, ")")) +
+      theme(plot.title = element_textbox_simple(halign = 0.5, margin = margin(10, 0, 10, 0)), plot.subtitle = element_text(hjust = 0.5)) + # 'element_textbox_simple' automatically wraps long titles
       xlab("") +
       ylab("") +
-      scale_x_date(date_breaks = "2 years", date_labels = "%Y", date_minor_breaks = "1 year") +
+      scale_x_date(date_breaks = "5 years", date_labels = "%Y", date_minor_breaks = "1 year") +
       scale_y_continuous(labels = scales::comma_format())
-
-    # Print to PDF
     print(p)
   }
-
-  # Close output device
-  dev.off()
 }
 ```
+
+```{r, echo=FALSE, message=FALSE}
+
+# Save downloaded and cleaned data for the March 2023 ABS publication 'Business Indicators, Australia'
+inventories <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676001.xlsx")
+sales <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676004.xlsx")
+
+#plot_ts(inventories, "S")
+pubs <- list(inventories, sales)
+```
+
+```{r, echo=FALSE, results='asis'}
+res <- lapply(pubs, function(x) {
+
+  knitr::knit_child(text = c(
+
+    '\n',
+    '## Plots for: `r "<to do>"`',
+    '\n',
+    '```{r, echo=FALSE, out.height="100%", out.width="100%"}',
+    'plot_ts(x, "S")',
+    '```'
+     ),
+     envir = environment(),
+     quiet = TRUE)
+})
+
+cat(unlist(res), sep = "\n")
