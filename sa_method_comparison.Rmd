@@ -99,22 +99,36 @@ download_ts <- function(url) {
     na.omit() # Some series have different start and end dates, so reduce dataset to complete cases across series
   
   # Download metadata
-  series_metadata <- read_excel(raw_data, sheet = "Index", skip = 9, col_names = TRUE)
+  series_metadata <-
+    read_excel(raw_data,
+               sheet = "Index",
+               skip = 9,
+               col_names = TRUE)
   
   # Remove irrelevant data
   series_metadata <- series_metadata |>
     filter(grepl("^[A-Z][a-z]+", `Data Item Description`)) |> # Discard junk (empty and copyright) rows
-    select_if(~!all(is.na(.))) |> # Discard empty columns
+    select_if( ~ !all(is.na(.))) |> # Discard empty columns
     clean_names()
   
   # Create common start and end dates across series
   series_metadata <- series_metadata |>
-    mutate(common_series_start = series_data$period[1],
-           common_series_end = series_data$period[nrow(series_data)],
-           common_start_year = year(ymd(common_series_start)),
-           common_start_period = ifelse(freq == "Month", month(ymd(common_series_start)), quarter(ymd(common_series_start))),
-           common_end_year = year(ymd(common_series_end)),
-           common_end_period = ifelse(freq == "Month", month(ymd(common_series_end)), quarter(ymd(common_series_end))))
+    mutate(
+      common_series_start = series_data$period[1],
+      common_series_end = series_data$period[nrow(series_data)],
+      common_start_year = year(ymd(common_series_start)),
+      common_start_period = ifelse(freq == "Month", month(ymd(
+        common_series_start
+      )), quarter(ymd(
+        common_series_start
+      ))),
+      common_end_year = year(ymd(common_series_end)),
+      common_end_period = ifelse(freq == "Month", month(ymd(
+        common_series_end
+      )), quarter(ymd(
+        common_series_end
+      )))
+    )
   
   # Create numeric version of frequency variable
   series_metadata <- series_metadata |>
@@ -123,7 +137,11 @@ download_ts <- function(url) {
     within(rm("freq"))
   
   # Create variables for the publication and table titles
-  titles <- read_excel(raw_data, sheet = "Index", range = "B5:B6", col_names = FALSE)
+  titles <-
+    read_excel(raw_data,
+               sheet = "Index",
+               range = "B5:B6",
+               col_names = FALSE)
   title_pub <- as.character(titles[1, 1])
   title_tab <- as.character(titles[2, 1])
   series_metadata <- series_metadata |>
@@ -162,29 +180,42 @@ create_ts_groups <- function(series) {
   series_ID_orig <- character()
   series_ID_seas <- character()
   series_ID_tren <- character()
-
+  
   # Cycle through each group of series
   for (name_index in 1:length(unique_series_names)) {
-    
     # Filter data to extract current series group
     unique_name <- unique_series_names[name_index]
-    data_filtered <- filter(meta, data_item_description == unique_name)
-
+    data_filtered <-
+      filter(meta, data_item_description == unique_name)
+    
     # Cycle through each series in group
     for (row in 1:nrow(data_filtered)) {
       # Extract series type and populate vectors
-      if (data_filtered[row, "series_type"] == "Original") series_ID_orig <- c(series_ID_orig, as.character(data_filtered[row, "series_id"]))
-      if (data_filtered[row, "series_type"] == "Seasonally Adjusted") series_ID_seas <- c(series_ID_seas, as.character(data_filtered[row, "series_id"]))
-      if (data_filtered[row, "series_type"] == "Trend") series_ID_tren <- c(series_ID_tren, as.character(data_filtered[row, "series_id"]))
+      if (data_filtered[row, "series_type"] == "Original")
+        series_ID_orig <-
+          c(series_ID_orig, as.character(data_filtered[row, "series_id"]))
+      if (data_filtered[row, "series_type"] == "Seasonally Adjusted")
+        series_ID_seas <-
+          c(series_ID_seas, as.character(data_filtered[row, "series_id"]))
+      if (data_filtered[row, "series_type"] == "Trend")
+        series_ID_tren <-
+          c(series_ID_tren, as.character(data_filtered[row, "series_id"]))
     }
     
     # Insert blanks where series are absent in spreadsheet to ensure corresponding vectors of series IDs are aligned
-    if (length(series_ID_orig) < name_index) series_ID_orig <- c(series_ID_orig, "")
-    if (length(series_ID_seas) < name_index) series_ID_seas <- c(series_ID_seas, "")
-    if (length(series_ID_tren) < name_index) series_ID_tren <- c(series_ID_tren, "")
+    if (length(series_ID_orig) < name_index)
+      series_ID_orig <- c(series_ID_orig, "")
+    if (length(series_ID_seas) < name_index)
+      series_ID_seas <- c(series_ID_seas, "")
+    if (length(series_ID_tren) < name_index)
+      series_ID_tren <- c(series_ID_tren, "")
   }
   
-  return(list(orig = series_ID_orig, seas = series_ID_seas, tren = series_ID_tren))
+  return(list(
+    orig = series_ID_orig,
+    seas = series_ID_seas,
+    tren = series_ID_tren
+  ))
 }
 ```
 
@@ -193,21 +224,28 @@ seasonal adjustment/trending, or plotting.
 
 ```{r}
 create_ts <- function(series, name) {
-  
   # Extract series data and metadata
   data <- series$data
   meta <- series$meta
   
   # Create common start and end periods
-  common_start_year <- filter(meta, series_id == name)$common_start_year
-  common_start_month <- filter(meta, series_id == name)$common_start_period
+  common_start_year <-
+    filter(meta, series_id == name)$common_start_year
+  common_start_month <-
+    filter(meta, series_id == name)$common_start_period
   common_end_year <- filter(meta, series_id == name)$common_end_year
-  common_end_month <- filter(meta, series_id == name)$common_end_period
+  common_end_month <-
+    filter(meta, series_id == name)$common_end_period
   
   # Redefine frequency variable
   freq <- filter(meta, series_id == name)$freq_num
   
-  return(ts(data[, name], start = c(common_start_year, common_start_month), end = c(common_end_year, common_end_month), frequency = freq))
+  return(ts(
+    data[, name],
+    start = c(common_start_year, common_start_month),
+    end = c(common_end_year, common_end_month),
+    frequency = freq
+  ))
 }
 ```
 
@@ -228,46 +266,79 @@ plot_ts <- function(series, type) {
   # Extract groups and series IDs
   series_groups <- create_ts_groups(series)
   series_ID_orig <- series_groups$orig
-  if (type == "S") series_ID_othr <- series_groups$seas
-  if (type == "T") series_ID_othr <- series_groups$tren
+  if (type == "S")
+    series_ID_othr <- series_groups$seas
+  if (type == "T")
+    series_ID_othr <- series_groups$tren
   
   # Cycle through series
   for (series_index in 1:length(series_ID_orig)) {
     
     # Skip iteration when only the original series are present for a given group but not the SA or T series
-    if (series_ID_othr[series_index] == "") next
+    if (series_ID_othr[series_index] == "")
+      next
     
     # Extract relevant series metadata for generating required series and for plotting purposes
     X13_type <- ifelse(type == "S", "seasonaladj", "trend")
     RJD_type <- ifelse(type == "S", "sa", "t")
     plot_type <- ifelse(type == "S", "Seasonally Adjusted", "Trend")
-    series_description <- filter(meta, series_id == series_ID_othr[series_index])$data_item_description
-    units <- filter(meta, series_id == series_ID_orig[series_index])$unit
-    period_type <- ifelse(meta$freq_name[1] == "Quarter", "quarters", "months")
-    period_range <- seq(data$period[1], data$period[nrow(data)], period_type)
+    series_description <-
+      filter(meta, series_id == series_ID_othr[series_index])$data_item_description
+    units <-
+      filter(meta, series_id == series_ID_orig[series_index])$unit
+    period_type <-
+      ifelse(meta$freq_name[1] == "Quarter", "quarters", "months")
+    period_range <-
+      seq(data$period[1], data$period[nrow(data)], period_type)
     
     # Extract ABS original and seasonally adjusted/trend series
     ABS_orig <- create_ts(series, series_ID_orig[series_index])
     ABS <- create_ts(series, series_ID_othr[series_index])
     
     # Generate X-13ARIMA-SEATS seasonally adjusted/trend series
-    X13 <- seas(ABS_orig, x11 = "")$data[, X13_type] # X11 option specifies X-11; overrides the 'seats' spec
+    X13 <-
+      seas(ABS_orig, x11 = "")$data[, X13_type] # X11 option specifies X-11; overrides the 'seats' spec
     
     # Generate JDemetra+ seasonally adjusted/trend series
     RJD <- x13(ABS_orig, spec = "RSA5c")$final$series[, RJD_type]
     
     # Generate plot data
-    plot_data <- data.frame("ABS" = as.numeric(ABS), "X13" = as.numeric(X13), "RJD" = as.numeric(RJD), "Period" = as.Date(period_range)) |>
-      melt(id.vars = c("Period"), value.name = "Value", variable.name = "Method")
+    plot_data <-
+      data.frame(
+        "ABS" = as.numeric(ABS),
+        "X13" = as.numeric(X13),
+        "RJD" = as.numeric(RJD),
+        "Period" = as.Date(period_range)
+      ) |>
+      melt(
+        id.vars = c("Period"),
+        value.name = "Value",
+        variable.name = "Method"
+      )
     
     # Generate plot
-    p <- ggplot(plot_data, aes(x = Period, y = Value, group = Method, colour = Method)) +
+    p <-
+      ggplot(plot_data,
+             aes(
+               x = Period,
+               y = Value,
+               group = Method,
+               colour = Method
+             )) +
       geom_line() +
-      labs(title = series_description, subtitle = paste0(plot_type, " (", units, ")")) +
-      theme(plot.title = element_textbox_simple(halign = 0.5, margin = margin(10, 0, 10, 0)), plot.subtitle = element_text(hjust = 0.5)) + # 'element_textbox_simple' automatically wraps long titles
+      labs(title = series_description,
+           subtitle = paste0(plot_type, " (", units, ")")) +
+      theme(
+        plot.title = element_textbox_simple(halign = 0.5, margin = margin(10, 0, 10, 0)),
+        plot.subtitle = element_text(hjust = 0.5)
+      ) + # 'element_textbox_simple' automatically wraps long titles
       xlab("") +
       ylab("") +
-      scale_x_date(date_breaks = "5 years", date_labels = "%Y", date_minor_breaks = "1 year") +
+      scale_x_date(
+        date_breaks = "5 years",
+        date_labels = "%Y",
+        date_minor_breaks = "1 year"
+      ) +
       scale_y_continuous(labels = scales::comma_format())
     print(p)
   }
@@ -276,11 +347,16 @@ plot_ts <- function(series, type) {
 
 ```{r, echo=FALSE, message=FALSE}
 
-# Save downloaded and cleaned data for the March 2023 ABS publication 'Business Indicators, Australia'
-inventories <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676001.xlsx")
-sales <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676004.xlsx")
+# Download and clean data for the March 2023 ABS publication 'Business Indicators, Australia'
+inventories <-
+  download_ts(
+    "https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676003.xlsx"
+  )
+sales <-
+  download_ts(
+    "https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676006.xlsx"
+  )
 
-#plot_ts(inventories, "S")
 pubs <- list(inventories, sales)
 ```
 
@@ -292,11 +368,12 @@ res <- lapply(pubs, function(x) {
   knitr::knit_child(text = c(
 
     '\n',
-    '## `r x$meta$publication[1]`',
+    '## `r x$meta$publication[1]` (`r format(x$meta$series_end[1], "%b %Y")`)',
     '## `r x$meta$table[1]`',
     '\n',
     '```{r, echo=FALSE, out.height="100%", out.width="100%"}',
     'plot_ts(x, "S")',
+    'plot_ts(x, "T")',
     '```'
      ),
      envir = environment(),
