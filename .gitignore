@@ -1,5 +1,6 @@
 # Output files
 QBIS*.pdf
+sa_method_comparison.html
 
 # History files
 .Rhistory
