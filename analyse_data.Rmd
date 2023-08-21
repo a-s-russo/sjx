@@ -1,0 +1,67 @@
+---
+title: "Comparison of seasonal adjustment and trending methods on Australian data"
+subtitle: "Analyse data"
+author: "Anthony Russo"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Loading required packages
+
+```{r libraries, warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggtext)
+library(janitor)
+library(lubridate)
+library(readxl)
+library(reshape2)
+library(RJDemetra)
+library(seasonal)
+```
+
+# Plotting select ABS publications
+
+Any observed differences in the seasonally adjusted or tend series from
+application of the varying methods applied to the ABS data are likely to be
+attributable to the following factors to varying extents:
+
+* differences in rounding (such as for published series vs internal ones)
+
+* differences in seasonal adjustment implementations (such as X-11 versus X-13)
+
+* differences in seasonal adjustment settings (such as filter lengths)
+
+* differences in prior corrections (such as automatic versus user-defined ones)
+
+* differences in aggregation (such as direct versus indirect adjustment)
+
+```{r plot-data, echo=FALSE, results='asis'}
+
+# Combine data
+pubs <-
+  list(
+    readRDS("data/BIA_Mar23_Table3.RData")
+#    readRDS("data/BIA_Mar23_Table6.RData"),
+#    readRDS("data/LFA_Jul23_Table1.RData")
+  )
+
+res <- lapply(pubs, function(x) {
+
+  knitr::knit_child(text = c(
+
+    '\n',
+    '## `r x$meta$publication[1]` (`r format(x$meta$series_end[1], "%b %Y")`)',
+    '## `r x$meta$table[1]`',
+    '\n',
+    '```{r, echo=FALSE, out.height="100%", out.width="100%"}',
+    'plot_ts(x, "S")',
+    'plot_ts(x, "T")',
+    '```'
+     ),
+     envir = environment(),
+     quiet = TRUE)
+})
+
+cat(unlist(res), sep = "\n")
+```
