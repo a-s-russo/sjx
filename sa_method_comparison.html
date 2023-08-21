@@ -11,7 +11,7 @@
 
 <meta name="author" content="Anthony Russo" />
 
-<meta name="date" content="2023-08-20" />
+<meta name="date" content="2023-08-21" />
 
 <title>Comparison of seasonal adjustment and trending methods on Australian data</title>
 
@@ -353,7 +353,7 @@ display: none;
 <h1 class="title toc-ignore">Comparison of seasonal adjustment and
 trending methods on Australian data</h1>
 <h4 class="author">Anthony Russo</h4>
-<h4 class="date">2023-08-20</h4>
+<h4 class="date">2023-08-21</h4>
 
 </div>
 
@@ -595,11 +595,19 @@ extraction, seasonal adjustment or trending, or plotting.</p>
 produced by X-13ARIMA-SEATS or JDemetra+ against the ABS version. It
 requires the data output from the download function above, and calls the
 time series generation functions above during execution.</p>
-<pre class="r"><code>plot_ts &lt;- function(series, type) {
+<pre class="r"><code>plot_ts &lt;- function(series, type=&quot;S&quot;, filename=NULL) {
   
   # Extract series data and metadata
   data &lt;- series$data
   meta &lt;- series$meta
+  
+  # Set up PDF output file if requested
+  if (!is.null(filename)) {
+    graphics.off()
+    pdf(paste0(filename, &quot;.pdf&quot;),
+        width = 12,
+        onefile = TRUE)
+  }
   
   # Extract groups and series IDs
   series_groups &lt;- create_ts_groups(series)
@@ -680,10 +688,31 @@ time series generation functions above during execution.</p>
       scale_y_continuous(labels = scales::comma_format())
     print(p)
   }
+  
+  # Close PDF output file if necessary
+  if (!is.null(filename)) {
+    dev.off()
+  }
 }</code></pre>
 </div>
 <div id="plotting-select-abs-publications" class="section level1">
 <h1>Plotting select ABS publications</h1>
+<p>Any observed differences in the seasonally adjusted or tend series
+from application of the varying methods applied to the ABS data are
+likely to be attributable to the following factors to varying
+extents:</p>
+<ul>
+<li><p>differences in rounding (such as for published series vs internal
+ones)</p></li>
+<li><p>differences in seasonal adjustment implementations (such as X-11
+versus X-13)</p></li>
+<li><p>differences in seasonal adjustment settings (such as filter
+lengths)</p></li>
+<li><p>differences in prior corrections (such as automatic versus
+user-defined ones)</p></li>
+<li><p>differences in aggregation (such as direct versus indirect
+adjustment)</p></li>
+</ul>
 <div id="business-indicators-australia-mar-2023" class="section level2">
 <h2>5676.0 Business Indicators, Australia (Mar 2023)</h2>
 </div>

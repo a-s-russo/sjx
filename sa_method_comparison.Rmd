@@ -153,6 +153,30 @@ download_ts <- function(url) {
 }
 ```
 
+```{r download-data, echo=FALSE, eval=FALSE, message=FALSE}
+# Download and clean data for the March 2023 ABS publication 'Business Indicators, Australia'
+saveRDS(
+  download_ts(
+    "https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676003.xlsx"
+  ),
+  file = "data/BIA_Mar23_Table3.RData"
+)
+saveRDS(
+  download_ts(
+    "https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676006.xlsx"
+  ),
+  file = "data/BIA_Mar23_Table6.RData"
+)
+
+# Download and clean data for the July 2023 ABS publication 'Labour Force, Australia'
+saveRDS(
+  download_ts(
+    "https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/jul-2023/6202001.xlsx"
+  ),
+  file = "data/LFA_Jul23_Table1.RData"
+)
+```
+
 ## Creating the time series
 
 The following functions create the time series data ready to be seasonally
@@ -258,11 +282,19 @@ output from the download function above, and calls the time series generation
 functions above during execution.
 
 ```{r func-plot-ts}
-plot_ts <- function(series, type) {
+plot_ts <- function(series, type="S", filename=NULL) {
   
   # Extract series data and metadata
   data <- series$data
   meta <- series$meta
+  
+  # Set up PDF output file if requested
+  if (!is.null(filename)) {
+    graphics.off()
+    pdf(paste0(filename, ".pdf"),
+        width = 12,
+        onefile = TRUE)
+  }
   
   # Extract groups and series IDs
   series_groups <- create_ts_groups(series)
@@ -343,32 +375,40 @@ plot_ts <- function(series, type) {
       scale_y_continuous(labels = scales::comma_format())
     print(p)
   }
+  
+  # Close PDF output file if necessary
+  if (!is.null(filename)) {
+    dev.off()
+  }
 }
-```
-
-```{r download-data, echo=FALSE, message=FALSE}
-# Download and clean data for the March 2023 ABS publication 'Business Indicators, Australia'
-inventories <-
-  download_ts(
-    "https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676003.xlsx"
-  )
-sales <-
-  download_ts(
-    "https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676006.xlsx"
-  )
-
-# Download and clean data for the July 2023 ABS publication 'Labour Force, Australia'
-LFS <-
-  download_ts(
-    "https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/jul-2023/6202001.xlsx"
-  )
-
-pubs <- list(inventories, sales, LFS)
 ```
 
 # Plotting select ABS publications
 
+Any observed differences in the seasonally adjusted or tend series from
+application of the varying methods applied to the ABS data are likely to be
+attributable to the following factors to varying extents:
+
+* differences in rounding (such as for published series vs internal ones)
+
+* differences in seasonal adjustment implementations (such as X-11 versus X-13)
+
+* differences in seasonal adjustment settings (such as filter lengths)
+
+* differences in prior corrections (such as automatic versus user-defined ones)
+
+* differences in aggregation (such as direct versus indirect adjustment)
+
 ```{r plot-data, echo=FALSE, results='asis'}
+
+# Combine data
+pubs <-
+  list(
+    readRDS("data/BIA_Mar23_Table3.RData"),
+    readRDS("data/BIA_Mar23_Table6.RData"),
+    readRDS("data/LFA_Jul23_Table1.RData")
+  )
+
 res <- lapply(pubs, function(x) {
 
   knitr::knit_child(text = c(
