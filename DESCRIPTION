@@ -1,0 +1,33 @@
+Package: timeseriescomparison
+Title: Comparison Of Seasonal Adjustment Methods On ABS Data
+Version: 0.1
+Authors@R: 
+    person("A", "Russo", , "a.s.russo@outlook.com", role = c("aut", "cre"))
+Description: This package contains functions to download and clean time
+    series data from the Australian Bureau of Statistics (ABS) and compare
+    the outputs from the seasonal adjustment and trend methods of
+    X-13ARIMA-SEATS and JDemetra+ against those published by the ABS
+    (which uses SEASABS).
+License: GPL (>= 3)
+Imports: 
+    dplyr,
+    ggplot2,
+    ggtext,
+    janitor,
+    lubridate,
+    readxl,
+    reshape2,
+    RJDemetra,
+    scales,
+    seasonal,
+    stats,
+    utils
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: 
+    knitr
+Config/fusen/version: 0.5.2
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3

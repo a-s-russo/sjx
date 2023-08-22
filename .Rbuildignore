@@ -1,2 +1,7 @@
 ^dev$
 ^\.here$
+^LICENSE\.md$
+^README\.Rmd$
+^CODE_OF_CONDUCT\.md$
+^timeseriescomparison\.Rproj$
+^\.Rproj\.user$

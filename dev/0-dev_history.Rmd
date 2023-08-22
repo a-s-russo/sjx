@@ -16,15 +16,17 @@ All commands that you use to use when developing packages...
 fusen::fill_description(
   pkg = here::here(),
   fields = list(
-    Title = "Build A Package From Rmarkdown File",
-    Description = "Use Rmarkdown First method to build your package. Start your package with documentation. Everything can be set from a Rmarkdown file in your project.",
+    Title = "Comparison of seasonal adjustment methods on ABS data",
+    Version = "0.1",
+    Description = "This package contains functions to download and clean time series data from the Australian Bureau of Statistics (ABS) and compare the outputs from the seasonal adjustment and trend methods of X-13ARIMA-SEATS and JDemetra+ against those published by the ABS (which uses SEASABS).",
     `Authors@R` = c(
-      person("John", "Doe", email = "john@email.me", role = c("aut", "cre"), comment = c(ORCID = "0000-0000-0000-0000"))
+      person("A", "Russo", email = "a.s.russo@outlook.com", role = c("aut", "cre"))
     )
-  )
+  ),
+  overwrite = TRUE
 )
 # Define License with use_*_license()
-usethis::use_mit_license("John Doe")
+usethis::use_gpl_license()
 ```
 
 # All-in-one function to deploy publicly on GitHub
@@ -32,20 +34,24 @@ usethis::use_mit_license("John Doe")
 Either use this GitHub all-in-one function or choose the steps one-by-one in the following sections.
 See `vignette("share-on-a-github-website", package = "fusen")` for more information.
 
+Not required since we Git is already being used
+
 ```{r, eval=FALSE}
-# _All-in-one share of your package and its documentation on GitHub
-fusen::init_share_on_github()
+# # _All-in-one share of your package and its documentation on GitHub
+# fusen::init_share_on_github()
 ```
 
 
 # Start using git
 
+Not required since we Git is already being used
+
 ```{r, eval=FALSE}
-usethis::use_git()
-# Deal with classical files to ignore
-usethis::git_vaccinate()
-# Use main for primary branch
-usethis::git_default_branch_rename()
+# usethis::use_git()
+# # Deal with classical files to ignore
+# usethis::git_vaccinate()
+# # Use main for primary branch
+# usethis::git_default_branch_rename()
 ```
 
 # Set extra sources of documentation
