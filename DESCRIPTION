@@ -11,14 +11,11 @@ Description: This package contains functions to download and clean time
 License: GPL (>= 3)
 Imports: 
     dplyr,
-    ggplot2,
-    ggtext,
     janitor,
     lubridate,
     readxl,
-    reshape2,
     RJDemetra,
-    scales,
+    rlang,
     seasonal,
     stats,
     utils

@@ -10,7 +10,7 @@ download_ts(url)
 \item{url}{Download link to the data}
 }
 \value{
-A list containing tibbles of series and their metadata
+A list containing formatted and cleaned time series data and their metadata
 }
 \description{
 download_ts Download and clean ABS time series data

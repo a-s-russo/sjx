@@ -1,10 +1,7 @@
 flat_save_data.Rmd:
   path: dev/flat_save_data.Rmd
   state: active
-  R:
-  - R/create_ts_groups.R
-  - R/download_ts.R
-  - R/plot_ts.R
+  R: R/download_ts.R
   tests: []
   vignettes: vignettes/dev-save_data.Rmd
   inflate:
