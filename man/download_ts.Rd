@@ -18,3 +18,17 @@ download_ts Download and clean ABS time series data
 \details{
 The URL needs to be a link to the downloadable Excel file corresponding to a table on the webpage of an ABS publication, and not a link to the webpage itself. To obtain such a link (in Windows and using Microsoft Edge), navigate to the 'Data downloads' tab of a publication, right-click on the 'Download XLSX' hyperlink for the chosen table, and select 'Copy link'.
 }
+\examples{
+\dontrun{
+# Construct URL to download ABS data
+ABS <- "https://www.abs.gov.au/statistics/economy/" # ABS website (for economic statistics)
+pub <- "business-indicators/business-indicators-australia/" # Publication
+ref <- "mar-2023/" # Reference period
+cat <- "567600" # Catalogue number
+tab <- "3.xlsx" # Table number
+URL <- paste0(ABS, pub, ref, cat, tab)
+
+# Download and plot data
+sales <- download_ts(URL)
+}
+}
