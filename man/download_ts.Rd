@@ -2,7 +2,7 @@
 % Please edit documentation in R/download_ts.R
 \name{download_ts}
 \alias{download_ts}
-\title{download_ts Download and clean ABS time series data}
+\title{Download and clean ABS time series data}
 \usage{
 download_ts(url)
 }
@@ -13,7 +13,7 @@ download_ts(url)
 A list containing formatted and cleaned time series data and their metadata
 }
 \description{
-download_ts Download and clean ABS time series data
+Download and clean ABS time series data
 }
 \details{
 The URL needs to be a link to the downloadable Excel file corresponding to a table on the webpage of an ABS publication, and not a link to the webpage itself. To obtain such a link (in Windows and using Microsoft Edge), navigate to the 'Data downloads' tab of a publication, right-click on the 'Download XLSX' hyperlink for the chosen table, and select 'Copy link'.

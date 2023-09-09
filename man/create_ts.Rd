@@ -2,7 +2,7 @@
 % Please edit documentation in R/download_ts.R
 \name{create_ts}
 \alias{create_ts}
-\title{create_ts Create a time series object for a single series in a downloaded and cleaned table from an ABS publication}
+\title{Create a time series object for a single series in a downloaded and cleaned table from an ABS publication}
 \usage{
 create_ts(series, seriesID)
 }
@@ -15,5 +15,5 @@ create_ts(series, seriesID)
 A time series object for a single series
 }
 \description{
-create_ts Create a time series object for a single series in a downloaded and cleaned table from an ABS publication
+Create a time series object for a single series in a downloaded and cleaned table from an ABS publication
 }
