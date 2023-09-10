@@ -9,6 +9,8 @@ Description: This package contains functions to download and clean time
     X-13ARIMA-SEATS and JDemetra+ against those published by the ABS
     (which uses SEASABS).
 License: GPL (>= 3)
+Depends: 
+    R (>= 2.10)
 Imports: 
     dplyr,
     ggplot2,
@@ -32,5 +34,6 @@ VignetteBuilder:
     knitr
 Config/fusen/version: 0.5.2
 Encoding: UTF-8
+LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3

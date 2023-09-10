@@ -5,6 +5,20 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
+```{r libraries, eval=FALSE, include=FALSE, message=FALSE, warning=FALSE}
+library("dplyr")
+library("ggplot2")
+library("ggtext")
+library("janitor")
+library("lubridate")
+library("readxl")
+library("reshape2")
+library("RJDemetra")
+library("seasonal")
+library("stringr")
+library("zoo")
+```
+
 ```{r function-download_ts}
 #' Download and clean ABS time series data
 #'
@@ -99,9 +113,15 @@ download_ts <- function(url) {
 #' tab <- "3.xlsx" # Table number
 #' URL <- paste0(ABS, pub, ref, cat, tab)
 #' 
-#' # Download and plot data
+#' # Download series data and metadata
 #' sales <- download_ts(URL)
 #' }
+```
+
+```{r save-datasets, echo=FALSE, eval=FALSE, include=FALSE}
+BIA_Mar23_Table3 <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676003.xlsx")
+BIA_Mar23_Table6 <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676006.xlsx")
+LFA_Jul23_Table1 <- download_ts("https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/jul-2023/6202001.xlsx")
 ```
 
 ```{r function-run_X13}

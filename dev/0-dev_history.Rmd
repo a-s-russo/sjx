@@ -83,6 +83,24 @@ fusen::inflate(flat_file = "dev/flat_save_data.Rmd",
 
 ```
 
+# Include datasets
+
+```{r}
+local({
+  knitr::knit("vignettes/dev-save_data.Rmd", output = tempfile())
+  usethis::use_data(BIA_Mar23_Table3, overwrite = TRUE)
+  usethis::use_data(BIA_Mar23_Table6, overwrite = TRUE)
+  usethis::use_data(LFA_Jul23_Table1, overwrite = TRUE)
+})
+
+```
+
+```{r}
+fusen::inflate(flat_file = "dev/data_doc.Rmd",
+               vignette_name = NA,
+               overwrite = T)
+```
+
 # Package development tools
 ## Use once
 

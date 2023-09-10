@@ -359,7 +359,7 @@ create_tsplot_table <- function(series) {
 #' tab <- "3.xlsx" # Table number
 #' URL <- paste0(ABS, pub, ref, cat, tab)
 #' 
-#' # Download and plot data
+#' # Download series data and metadata
 #' sales <- download_ts(URL)
 #' }
 download_ts <- function(url) {
