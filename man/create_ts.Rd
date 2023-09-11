@@ -2,18 +2,41 @@
 % Please edit documentation in R/download_ts.R
 \name{create_ts}
 \alias{create_ts}
-\title{Create a time series object for a single series in a downloaded and cleaned table from an ABS publication}
+\title{Create a time series object for a single series}
 \usage{
 create_ts(series, seriesID)
 }
 \arguments{
-\item{series}{A list returned from download_ts containing series and their metadata}
+\item{series}{list returned from \code{download_ts} containing series data and
+metadata}
 
-\item{seriesID}{A series ID}
+\item{seriesID}{series ID}
 }
 \value{
-A time series object for a single series
+time series object for a single series
 }
 \description{
-Create a time series object for a single series in a downloaded and cleaned table from an ABS publication
+\code{create_ts} returns a time series object for a single series in a downloaded
+and cleaned table from an ABS publication (as returned by \code{download_ts}).
+The series is identified by its series ID contained in the series metadata.
+}
+\details{
+To maintain consistency with other structures and functions used in this
+package, a NULL object (rather than an error) is returned if the series ID is
+missing.
+}
+\examples{
+\dontrun{
+# Construct URL to download ABS data
+ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for economic statistics)
+pub <- "employment-and-unemployment/labour-force-australia/" # Publication
+ref <- "jul-2023/" # Reference period
+cat <- "620200" # Catalogue number
+tab <- "1.xlsx" # Table number
+URL <- paste0(ABS, pub, ref, cat, tab)
+
+# Run function
+emp_total <- create_ts(emp, "A84423127L")
+}
+
 }

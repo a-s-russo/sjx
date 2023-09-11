@@ -5,19 +5,21 @@
 \alias{LFA_Jul23_Table1}
 \title{Labour Force Australia, July 2023, Table 1}
 \format{
-A list containing the downloaded and cleaned series data and metadata
+list containing the downloaded and cleaned series data and metadata
 \describe{
-\item{ data }{ A tibble containing the original, seasonally adjusted and trend series }
-\item{ meta }{ A tibble containing the associated metadata for each series }
+\item{data}{tibble containing the original, seasonally adjusted and trend
+series}
+\item{meta}{tibble containing the associated metadata for each series}
 }
 }
 \source{
-Australian Bureau of Statistics (https://www.abs.gov.au/)
+\url{https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/jul-2023#data-downloadss}
 }
 \usage{
 LFA_Jul23_Table1
 }
 \description{
-Labour Force Australia, July 2023, Table 1
+A dataset containing monthly estimates of labour force status by sex
+collected by the \href{https://www.abs.gov.au/}{Australian Bureau of Statistics}.
 }
 \keyword{datasets}

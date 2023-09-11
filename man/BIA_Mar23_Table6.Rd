@@ -5,19 +5,22 @@
 \alias{BIA_Mar23_Table6}
 \title{Business Indicators Australia, March 2023, Table 6}
 \format{
-A list containing the downloaded and cleaned series data and metadata
+list containing the downloaded and cleaned series data and metadata
 \describe{
-\item{ data }{ A tibble containing the original, seasonally adjusted and trend series }
-\item{ meta }{ A tibble containing the associated metadata for each series }
+\item{data}{tibble containing the original, seasonally adjusted and trend
+series}
+\item{meta}{tibble containing the associated metadata for each series}
 }
 }
 \source{
-Australian Bureau of Statistics (https://www.abs.gov.au/)
+\url{https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023#data-downloads}
 }
 \usage{
 BIA_Mar23_Table6
 }
 \description{
-Business Indicators Australia, March 2023, Table 6
+A dataset containing quarterly estimates of private sector income from sales
+of goods and services in current prices collected by the
+\href{https://www.abs.gov.au/}{Australian Bureau of Statistics}.
 }
 \keyword{datasets}

@@ -87,8 +87,17 @@ between SEASABS, X-13ARIMA-SEATS, and JDemetra+:
 # Load the package
 library(timeseriescomparison)
 
-# Download Australian labour force data
-emp <- download_ts("https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/jul-2023/6202001.xlsx")
+# Construct a URL to download ABS labour force data
+ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
+pub <- "employment-and-unemployment/labour-force-australia/" # Publication
+ref <- "jul-2023/" # Reference period
+cat <- "620200" # Catalogue number
+tab <- "1" # Table number
+ext <- ".xlsx" # File extension
+URL <- paste0(ABS, pub, ref, cat, tab, ext)
+
+# Download the series data and metadata
+emp <- download_ts(URL)
 
 # Plot the seasonally adjusted series
 create_tsplot_comp(emp, "Employed total ;  Persons ;", "S")

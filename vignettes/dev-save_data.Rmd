@@ -36,21 +36,6 @@ library("stringr")
 library("zoo")
 ```
 
-```{r examples-download_ts, echo = FALSE, eval = FALSE}
-#' \dontrun{
-#' # Construct URL to download ABS data
-#' ABS <- "https://www.abs.gov.au/statistics/economy/" # ABS website (for economic statistics)
-#' pub <- "business-indicators/business-indicators-australia/" # Publication
-#' ref <- "mar-2023/" # Reference period
-#' cat <- "567600" # Catalogue number
-#' tab <- "3.xlsx" # Table number
-#' URL <- paste0(ABS, pub, ref, cat, tab)
-#' 
-#' # Download series data and metadata
-#' sales <- download_ts(URL)
-#' }
-```
-
 ```{r save-datasets, echo = FALSE, eval = FALSE, include = FALSE}
 BIA_Mar23_Table3 <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676003.xlsx")
 BIA_Mar23_Table6 <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676006.xlsx")

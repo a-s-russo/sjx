@@ -7,20 +7,40 @@
 download_ts(url)
 }
 \arguments{
-\item{url}{Download link to the data}
+\item{url}{download link to the data}
 }
 \value{
-A list containing formatted and cleaned time series data and their metadata
+series data and metadata
 }
 \description{
-Download and clean ABS time series data
+\code{download_ts} downloads the time series data corresponding to a table of an
+ABS publication, imports them into R, cleans and reformats the data, and
+then returns a list containing tibbles of the series data and series
+metadata.
 }
 \details{
-The URL needs to be a link to the downloadable Excel file corresponding to a table on the webpage of an ABS publication, and not a link to the webpage itself. To obtain such a link (in Windows and using Microsoft Edge), navigate to the 'Data downloads' tab of a publication, right-click on the 'Download XLSX' hyperlink for the chosen table, and select 'Copy link'.
+The URL needs to be a link to the downloadable Excel file corresponding to a
+table on the webpage of an ABS publication, and not a link to the webpage
+itself. To obtain such a link (in Windows and using Microsoft Edge), navigate
+to the 'Data downloads' tab of a publication, right-click on the 'Download
+XLSX' hyperlink for the chosen table, and select 'Copy link'.
+
+Only the most recent 500 observations for the series are read in, as
+X-13ARIMA-SEATS will fail to execute if the series are too long.
+
+The included series start and end variables in the metadata ('Index'
+tab of the downloaded spreadsheet) are ignored. The reason is because some
+series values in the data ('Data1' tab) are suppressed, meaning these
+included variables don't align with what's really in the data tab containing
+the time series values. By creating series start and end variables based on
+the common span across all series in the data tab ('complete cases'),
+errors are reduced for series with potentially missing data at the start or
+end periods. Furthermore, for a given table (spreadsheet), all plots have the
+same time scale, which aids comparisons.
 }
 \examples{
 \dontrun{
-# Construct URL to download ABS data
+# Construct a URL to download ABS data
 ABS <- "https://www.abs.gov.au/statistics/economy/" # ABS website (for economic statistics)
 pub <- "business-indicators/business-indicators-australia/" # Publication
 ref <- "mar-2023/" # Reference period
@@ -28,7 +48,8 @@ cat <- "567600" # Catalogue number
 tab <- "3.xlsx" # Table number
 URL <- paste0(ABS, pub, ref, cat, tab)
 
-# Download series data and metadata
+# Download the series data and metadata
 sales <- download_ts(URL)
 }
+
 }
