@@ -30,9 +30,11 @@ estimates are referenced directly via their publications on the web. The
 other two programs are readily accessible however, and are run via their
 R interfaces:
 
-- The R package `seas` is used to run X-13ARIMA-SEATS
+- The R package [`seasonal`](http://www.seasonal.website/seasonal.html)
+  is used to run X-13ARIMA-SEATS
 
-- The R package `RJDemetra` is used to run JDemetra+ (version 2)
+- The R package [`RJDemetra`](https://github.com/jdemetra/rjdemetra) is
+  used to run JDemetra+ (version 2)
 
 Importantly, the default values of both packages have been used when
 running the seasonal adjustment and trending algorithms.
@@ -56,10 +58,11 @@ Each spreadsheet file contains the following sheets/tabs:
   type, units and frequency
 
 - **Data1:** contains the original, seasonally adjusted and trend
-  estimates (any other tabs are ignored in this analysis)
+  estimates
 
-Note that the ABS does not publish seasonally adjusted and trend
-estimates for all original time series.
+Note that any other tabs are ignored in this analysis, and that the ABS
+does not publish seasonally adjusted and trend estimates for all
+original time series.
 
 ## Installation
 
@@ -96,4 +99,4 @@ emp <- download_ts(URL)
 create_tsplot_comp(emp, "Employed total ;  Persons ;", "S")
 ```
 
-<img src="man/figures/README-example-1.png" width="100%" height="100%" />
+<img src="man/figures/README-example-1.png" width="100%" height="100%" style="display: block; margin: auto;" />
