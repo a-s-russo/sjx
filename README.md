@@ -52,7 +52,8 @@ An example is *Table 1. Inventories, chain volume measures* in the March
 
 <https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676001.xlsx>
 
-Each spreadsheet file contains the following sheets/tabs:
+Each spreadsheet file contains the following sheets/tabs (any others are
+ignored):
 
 - **Index:** contains metadata about the time series, such as the series
   type, units and frequency
@@ -60,9 +61,10 @@ Each spreadsheet file contains the following sheets/tabs:
 - **Data1:** contains the original, seasonally adjusted and trend
   estimates
 
-Note that any other tabs are ignored in this analysis, and that the ABS
-does not publish seasonally adjusted and trend estimates for all
-original time series.
+Note that the ABS does not necessarily publish seasonally adjusted and
+trend estimates for all original time series, and sometimes only
+publishes the seasonally adjusted and/or trend estimates without the
+corresponding original series.
 
 ## Installation
 

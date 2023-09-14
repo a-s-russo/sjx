@@ -36,12 +36,13 @@ list (rather than assume NULL values, for instance).
 \examples{
 \dontrun{
 # Construct URL to download ABS data
-ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for economic statistics)
+ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
 pub <- "employment-and-unemployment/labour-force-australia/" # Publication
 ref <- "jul-2023/" # Reference period
 cat <- "620200" # Catalogue number
-tab <- "1.xlsx" # Table number
-URL <- paste0(ABS, pub, ref, cat, tab)
+tab <- "1" # Table number
+ext <- ".xlsx" # File extension
+URL <- paste0(ABS, pub, ref, cat, tab, ext)
 
 # Run function
 emp_total <- create_ts_comp(emp, "Employed total ;  Persons ;")
