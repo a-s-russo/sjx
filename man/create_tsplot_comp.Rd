@@ -2,26 +2,24 @@
 % Please edit documentation in R/download_ts.R
 \name{create_tsplot_comp}
 \alias{create_tsplot_comp}
-\title{Generate a ggplot for seasonally adjusted or trend estimates for a single
+\title{Generate ggplots for seasonally adjusted and trend estimates for a single
 data item description}
 \usage{
-create_tsplot_comp(series, dataItem, type)
+create_tsplot_comp(series, dataItem)
 }
 \arguments{
 \item{series}{list returned from \code{download_ts} containing series data and
 metadata}
 
 \item{dataItem}{data item description for which results are to be returned}
-
-\item{type}{"S" for seasonal adjustment, or "T" for trending}
 }
 \value{
-ggplot object for the seasonally adjusted or trend series for a
+ggplot objects for the seasonally adjusted and trend series for a
 single data item description
 }
 \description{
-\code{create_tsplot_comp} returns a ggplot object for either the seasonally
-adjusted or trend series corresponding to a single data item description in
+\code{create_tsplot_table} returns a list of ggplot objects for the seasonally
+adjusted and trend series corresponding to a single data item description in
 a downloaded and cleaned table from an ABS publication (as returned by
 \code{download_ts}).
 }
@@ -43,10 +41,10 @@ ext <- ".xlsx" # File extension
 URL <- paste0(ABS, pub, ref, cat, tab, ext)
 
 # Run function
-create_tsplot_comp(emp, "Employed total ;  Persons ;", "S")
+create_tsplot_comp(emp, "Employed total ;  Persons ;")
 
 # Plot still produced even when ABS seasonally adjusted and/or trend non-existent:
-create_tsplot_comp(emp, "Civilian population aged 15 years and over ;  Persons ;", "S")
+create_tsplot_comp(emp, "Civilian population aged 15 years and over ;  Persons ;")
 }
 
 }

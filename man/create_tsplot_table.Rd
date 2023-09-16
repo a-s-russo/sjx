@@ -2,7 +2,7 @@
 % Please edit documentation in R/download_ts.R
 \name{create_tsplot_table}
 \alias{create_tsplot_table}
-\title{Generate ggplots for the seasonally adjusted and trend estimates for all data
+\title{Generate ggplots for seasonally adjusted and trend estimates for all data
 item descriptions}
 \usage{
 create_tsplot_table(series)

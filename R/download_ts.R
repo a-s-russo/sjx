@@ -65,7 +65,11 @@
 download_ts <- function(url) {
   # Download data
   raw_data <- tempfile(fileext = ".xlsx")
-  download.file(url, raw_data, method = "auto", mode = "wb")
+  download.file(url,
+                raw_data,
+                method = "auto",
+                mode = "wb",
+                quiet = TRUE)
   series_data <- read_excel(raw_data, sheet = "Data1", skip = 9) |>
     slice_tail(n = 500) |> # X-13 in 'seas' will fail if series is too long, so select most recent data
     rename(period = "Series ID") |>
@@ -74,10 +78,13 @@ download_ts <- function(url) {
   
   # Download metadata
   series_metadata <-
-    read_excel(raw_data,
-               sheet = "Index",
-               skip = 9,
-               col_names = TRUE)
+    read_excel(
+      raw_data,
+      sheet = "Index",
+      skip = 9,
+      col_names = TRUE,
+      .name_repair = "unique_quiet"
+    )
   
   # Remove irrelevant data
   series_metadata <- series_metadata |>
@@ -115,10 +122,13 @@ download_ts <- function(url) {
   
   # Create variables for the publication and table titles
   titles <-
-    read_excel(raw_data,
-               sheet = "Index",
-               range = "B5:B6",
-               col_names = FALSE)
+    read_excel(
+      raw_data,
+      sheet = "Index",
+      range = "B5:B6",
+      col_names = FALSE,
+      .name_repair = "unique_quiet"
+    )
   title_pub <- as.character(titles[1, 1])
   title_tab <- as.character(titles[2, 1])
   series_metadata <- series_metadata |>
@@ -126,7 +136,8 @@ download_ts <- function(url) {
            table = title_tab)
   
   # Keep only seasonally adjusted and trend series that have a corresponding original series
-  dataItems_tokeep <- series_metadata$data_item_description[series_metadata$series_type == "Original"]
+  dataItems_tokeep <-
+    series_metadata$data_item_description[series_metadata$series_type == "Original"]
   series_metadata <- series_metadata |>
     filter(.data$data_item_description %in% dataItems_tokeep)
   seriesIDs_tokeep <- series_metadata$series_id
@@ -399,13 +410,28 @@ create_ts_table <- function(series) {
   
   # Extract unique data item descriptions
   unique_dataItems <- unique(meta$data_item_description)
+  no_unique_dataItems <- length(unique_dataItems)
   
   # Initialise empty list
-  results <- vector("list", length(unique_dataItems))
+  results <- vector("list", no_unique_dataItems)
   names(results) <- unique_dataItems
+  
+  # Provide progress update
+  message(paste("Processing", no_unique_dataItems, "series..."))
   
   # Cycle through each data item description
   for (dataItem in unique_dataItems) {
+    # Provide progress update
+    message(paste0(
+      "Series ",
+      which(dataItem == unique_dataItems),
+      "/",
+      no_unique_dataItems,
+      ": \"",
+      dataItem,
+      "\""
+    ))
+    
     # Extract and generate time series objects for current data item description
     results[[dataItem]] <- create_ts_comp(series, dataItem)
   }
@@ -557,13 +583,28 @@ create_tsdf_table <- function(series) {
   
   # Extract unique data item descriptions
   unique_dataItems <- unique(meta$data_item_description)
+  no_unique_dataItems <- length(unique_dataItems)
   
   # Initialise empty list
-  results <- vector("list", length(unique_dataItems))
+  results <- vector("list", no_unique_dataItems)
   names(results) <- unique_dataItems
+  
+  # Provide progress update
+  message(paste("Processing", no_unique_dataItems, "series..."))
   
   # Cycle through each data item description
   for (dataItem in unique_dataItems) {
+    # Provide progress update
+    message(paste0(
+      "Series ",
+      which(dataItem == unique_dataItems),
+      "/",
+      no_unique_dataItems,
+      ": \"",
+      dataItem,
+      "\""
+    ))
+    
     # Extract and generate time series objects for current data item description
     results[[dataItem]] <- create_tsdf_comp(series, dataItem)
   }
@@ -572,12 +613,12 @@ create_tsdf_table <- function(series) {
 }
 
 #' @title
-#' Generate a ggplot for seasonally adjusted or trend estimates for a single
+#' Generate ggplots for seasonally adjusted and trend estimates for a single
 #' data item description
 #' 
 #' @description
-#' `create_tsplot_comp` returns a ggplot object for either the seasonally
-#' adjusted or trend series corresponding to a single data item description in
+#' `create_tsplot_table` returns a list of ggplot objects for the seasonally
+#' adjusted and trend series corresponding to a single data item description in
 #' a downloaded and cleaned table from an ABS publication (as returned by
 #' `download_ts`).
 #' 
@@ -590,7 +631,6 @@ create_tsdf_table <- function(series) {
 #' @param series list returned from `download_ts` containing series data and
 #' metadata
 #' @param dataItem data item description for which results are to be returned
-#' @param type "S" for seasonal adjustment, or "T" for trending
 #' 
 #' @importFrom ggplot2 aes element_text geom_line ggplot labs margin
 #' scale_color_discrete scale_y_continuous theme xlab ylab
@@ -599,7 +639,7 @@ create_tsdf_table <- function(series) {
 #' @importFrom rlang .data
 #' @importFrom stringr str_squish
 #' 
-#' @return ggplot object for the seasonally adjusted or trend series for a
+#' @return ggplot objects for the seasonally adjusted and trend series for a
 #' single data item description
 #' 
 #' @examples
@@ -614,95 +654,110 @@ create_tsdf_table <- function(series) {
 #' URL <- paste0(ABS, pub, ref, cat, tab, ext)
 #'
 #' # Run function
-#' create_tsplot_comp(emp, "Employed total ;  Persons ;", "S")
+#' create_tsplot_comp(emp, "Employed total ;  Persons ;")
 #'
 #' # Plot still produced even when ABS seasonally adjusted and/or trend non-existent:
-#' create_tsplot_comp(emp, "Civilian population aged 15 years and over ;  Persons ;", "S")
+#' create_tsplot_comp(emp, "Civilian population aged 15 years and over ;  Persons ;")
 #' }
 #'
 #' @export
-create_tsplot_comp <- function(series, dataItem, type) {
+create_tsplot_comp <- function(series, dataItem) {
   # Extract time series data frame for given data item description
   dataItem_df <- create_tsdf_comp(series, dataItem)
-  
-  # Extract series to be plotted
-  if (type == "S")
-    plot_data <-
-      dataItem_df$dataframe[dataItem_df$dataframe$method %in% c("ABS_seas", "X13_seas", "RJD_seas"), ]
-  if (type == "T")
-    plot_data <-
-      dataItem_df$dataframe[dataItem_df$dataframe$method %in% c("ABS_tren", "X13_tren", "RJD_tren"), ]
   
   # Extract relevant information for plotting purposes
   series_description <- dataItem
   units <- as.character(unique(dataItem_df$metadata[, "unit"]))
-  plot_type <- ifelse(type == "S", "Seasonally Adjusted", "Trend")
   
-  # Extract start and end periods for plotting purposes
-  start_date <- unique(plot_data$period)[1]
-  start_yr <- as.character(year(start_date))
-  end_date <-
-    unique(plot_data$period)[length(unique(plot_data$period))]
-  end_yr <- as.character(year(end_date))
-  freq <- tolower(unique(dataItem_df$metadata$freq_name))
-  start_period <- format(unique(plot_data$period)[1], "%B")
-  end_period <-
-    format(unique(plot_data$period)[length(unique(plot_data$period))], "%B")
-  period_qualifter <- ifelse(freq == "quarter", "Qtr", "")
-  timespan <-
-    str_squish(
-      paste(
-        start_period,
-        period_qualifter,
-        start_yr,
-        "to",
-        end_period,
-        period_qualifter,
-        end_yr
+  # Initialise empty list
+  results <- list("seas" = NULL, "tren" = NULL)
+  
+  # Cycle through each series type
+  for (type in c("seas", "tren")) {
+    # Extract series to be plotted
+    if (type == "seas")
+      plot_data <-
+        dataItem_df$dataframe[dataItem_df$dataframe$method %in% c("ABS_seas", "X13_seas", "RJD_seas"),]
+    if (type == "tren")
+      plot_data <-
+        dataItem_df$dataframe[dataItem_df$dataframe$method %in% c("ABS_tren", "X13_tren", "RJD_tren"),]
+    
+    # Extract start and end periods for plotting purposes
+    start_date <- unique(plot_data$period)[1]
+    start_yr <- as.character(year(start_date))
+    end_date <-
+      unique(plot_data$period)[length(unique(plot_data$period))]
+    end_yr <- as.character(year(end_date))
+    freq <- tolower(unique(dataItem_df$metadata$freq_name))
+    start_period <- format(unique(plot_data$period)[1], "%B")
+    end_period <-
+      format(unique(plot_data$period)[length(unique(plot_data$period))], "%B")
+    period_qualifter <- ifelse(freq == "quarter", "Qtr", "")
+    timespan <-
+      str_squish(
+        paste(
+          start_period,
+          period_qualifter,
+          start_yr,
+          "to",
+          end_period,
+          period_qualifter,
+          end_yr
+        )
       )
-    )
-  
-  # Extract legend labels for plotting purposes
-  if (type == "S") {
-    if ("Seasonally Adjusted" %in% dataItem_df$metadata$series_type)
-      labels <- c("ABS", "X13", "RJD")
-    else
-      labels <-
-        c("X13", "RJD") # Series might not be published in ABS data
+    
+    # Extract legend labels for plotting purposes
+    if (type == "seas") {
+      if ("Seasonally Adjusted" %in% dataItem_df$metadata$series_type)
+        labels <- c("ABS", "X13", "RJD")
+      else
+        labels <-
+          c("X13", "RJD") # Series might not be published in ABS data
+    }
+    if (type == "tren") {
+      if ("Trend" %in% dataItem_df$metadata$series_type)
+        labels <- c("ABS", "X13", "RJD")
+      else
+        labels <-
+          c("X13", "RJD") # Series might not be published in ABS data
+    }
+    
+    # Generate plot object
+    plot <- ggplot(
+      plot_data,
+      aes(
+        x = .data$period,
+        y = .data$value,
+        group = .data$method,
+        colour = .data$method
+      )
+    ) +
+      geom_line() +
+      labs(title = series_description,
+           subtitle = paste0(
+             ifelse(type == "seas", "Seasonally Adjusted", "Trend"),
+             " (",
+             units,
+             ")"
+           )) +
+      theme(
+        plot.title = element_textbox_simple(halign = 0.5, margin = margin(10, 0, 10, 0)),
+        plot.subtitle = element_text(hjust = 0.5)
+      ) + # 'element_textbox_simple' automatically wraps long titles
+      xlab(paste0("\n", timespan)) +
+      ylab("") +
+      scale_color_discrete(name = "Method", labels = labels) +
+      scale_y_continuous(labels = scales::comma)
+    
+    # Append plot for current series type
+    results[[type]] <- plot
   }
-  if (type == "T") {
-    if ("Trend" %in% dataItem_df$metadata$series_type)
-      labels <- c("ABS", "X13", "RJD")
-    else
-      labels <-
-        c("X13", "RJD") # Series might not be published in ABS data
-  }
-  
-  # Generate plot object
-  results <- ggplot(plot_data,
-              aes(
-                x = .data$period,
-                y = .data$value,
-                group = .data$method,
-                colour = .data$method
-              )) +
-    geom_line() +
-    labs(title = series_description,
-         subtitle = paste0(plot_type, " (", units, ")")) +
-    theme(
-      plot.title = element_textbox_simple(halign = 0.5, margin = margin(10, 0, 10, 0)),
-      plot.subtitle = element_text(hjust = 0.5)
-    ) + # 'element_textbox_simple' automatically wraps long titles
-    xlab(paste0("\n", timespan)) +
-    ylab("") +
-    scale_color_discrete(name = "Method", labels = labels) +
-    scale_y_continuous(labels = scales::comma)
   
   return(results)
 }
 
 #' @title
-#' Generate ggplots for the seasonally adjusted and trend estimates for all data
+#' Generate ggplots for seasonally adjusted and trend estimates for all data
 #' item descriptions
 #' 
 #' @description
@@ -745,20 +800,30 @@ create_tsplot_table <- function(series) {
   
   # Extract unique data item descriptions
   unique_dataItems <- unique(meta$data_item_description)
+  no_unique_dataItems <- length(unique_dataItems)
   
   # Initialise empty list
-  results <- vector("list", length(unique_dataItems))
+  results <- vector("list", no_unique_dataItems)
   names(results) <- unique_dataItems
+  
+  # Provide progress update
+  message(paste("Processing", no_unique_dataItems, "series..."))
   
   # Cycle through each data item description
   for (dataItem in unique_dataItems) {
-    # Generate plot objects for seasonally adjusted and trend series
-    seas_plot <- create_tsplot_comp(series, dataItem, "S")
-    tren_plot <- create_tsplot_comp(series, dataItem, "T")
-    plots <- list("seas" = seas_plot, "tren" = tren_plot)
+    # Provide progress update
+    message(paste0(
+      "Series ",
+      which(dataItem == unique_dataItems),
+      "/",
+      no_unique_dataItems,
+      ": \"",
+      dataItem,
+      "\""
+    ))
     
-    # Append plots for current data item description
-    results[[dataItem]] <- plots
+    # Generate and append seasonally adjusted and trend plots for current data item description
+    results[[dataItem]] <- create_tsplot_comp(series, dataItem)
   }
   
   return(results)
