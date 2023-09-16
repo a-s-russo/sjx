@@ -106,5 +106,5 @@ URL <- paste0(ABS, pub, ref, cat, tab, ext)
 emp <- download_ts(URL)
 
 # Plot the seasonally adjusted series
-create_tsplot_comp(emp, "Employed total ;  Persons ;", "S")
+create_tsplot_comp(emp, "Employed total ;  Persons ;")$seas
 ```

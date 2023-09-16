@@ -74,6 +74,16 @@ You can install the development version of `timeseriescomparison` from
 ``` r
 # install.packages("devtools")
 devtools::install_github("a-s-russo/time-series-comparison@fusen")
+#> 
+#> ── R CMD build ─────────────────────────────────────────────────────────────────
+#>       ✔  checking for file 'C:\Users\asrus\AppData\Local\Temp\RtmpqAz20J\remotes29f05cfe4bdc\a-s-russo-time-series-comparison-398bdce/DESCRIPTION' (385ms)
+#>       ─  preparing 'timeseriescomparison':
+#>    checking DESCRIPTION meta-information ...     checking DESCRIPTION meta-information ...   ✔  checking DESCRIPTION meta-information
+#>       ─  checking for LF line-endings in source and make files and shell scripts
+#>   ─  checking for empty or unneeded directories
+#>       ─  building 'timeseriescomparison_0.1.tar.gz'
+#>      
+#> 
 ```
 
 ## Example
@@ -98,7 +108,7 @@ URL <- paste0(ABS, pub, ref, cat, tab, ext)
 emp <- download_ts(URL)
 
 # Plot the seasonally adjusted series
-create_tsplot_comp(emp, "Employed total ;  Persons ;", "S")
+create_tsplot_comp(emp, "Employed total ;  Persons ;")$seas
 ```
 
 <img src="man/figures/README-example-1.png" width="100%" height="100%" style="display: block; margin: auto;" />
