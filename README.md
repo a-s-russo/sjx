@@ -61,10 +61,16 @@ ignored):
 - **Data1:** contains the original, seasonally adjusted and trend
   estimates
 
-Note that the ABS does not necessarily publish seasonally adjusted and
-trend estimates for all original time series, and sometimes only
-publishes the seasonally adjusted and/or trend estimates without the
-corresponding original series.
+Note that:
+
+- the ABS does not necessarily publish seasonally adjusted and trend
+  estimates for all original time series;
+
+- the ABS sometimes only publishes the seasonally adjusted and/or trend
+  estimates without the corresponding original series; and
+
+- this package only works for ABS data containing monthly or quarterly
+  time series.
 
 ## Installation
 
