@@ -835,6 +835,10 @@ create_tsplot_comp <- function(series, dataItem) {
   series_description <- dataItem
   units <- as.character(unique(dataItem_df$metadata[, "unit"]))
   
+  # Extract min and max values for vertical axis to ensure same scale across seasonally adjusted and trend plots
+  y_min <- min(dataItem_df$dataframe$value)
+  y_max <- max(dataItem_df$dataframe$value)
+  
   # Initialise empty list
   results <- list("seas" = NULL, "tren" = NULL)
   
@@ -913,7 +917,7 @@ create_tsplot_comp <- function(series, dataItem) {
       xlab(paste0("\n", timespan)) +
       ylab("") +
       scale_color_discrete(name = "Method", labels = labels) +
-      scale_y_continuous(labels = scales::comma)
+      scale_y_continuous(limits = c(y_min, y_max), labels = scales::comma)
     
     # Append plot for current series type
     results[[type]] <- plot
