@@ -25,34 +25,35 @@ itself. To obtain such a link (in Windows and using Microsoft Edge), navigate
 to the 'Data downloads' tab of a publication, right-click on the 'Download
 XLSX' hyperlink for the chosen table, and select 'Copy link'.
 
-Only the most recent 500 observations for the series are read in, as
-X-13ARIMA-SEATS will fail to execute if the series are too long.
-
 The included series start and end variables in the metadata ('Index' sheet of
 the downloaded spreadsheet) are ignored. The reason is because some series
 values in the data ('Data1' sheet) are suppressed or missing at the start
 and/or end of the series, meaning these included variables don't align with
-what's really in the data sheet containing the time series values. By
-creating series start and end variables based on the common span across all
-series in the data sheet, errors are reduced for series with potentially
-missing data at the start and/or end periods. Furthermore, for a given table
-(spreadsheet), all plots have the same time scale, which aids comparisons.
+what's really in the data sheet containing the time series values.
 
-Some original series may also have suppressed or missing values in the middle
-of them (rather than at the start and/or end). These series are removed from
-the returned datasets since seasonally adjusted and trend estimates cannot be
-generated from them by X-13ARIMA-SEATS or JDemetra+ due to the missingness.
-(ABS seasonally adjusted and trend series with suppressed or missing values
-in the middle are retained since these only need to be compared or
-displayed.)
+For original series, only the most recent 500 observations are read in, as
+X-13ARIMA-SEATS will fail to execute if the series are too long. Similarly,
+any original series that are too short to be seasonally adjusted and trended
+by X-13ARIMA-SEATS (that is, series containing less than three year's worth
+of data) are removed from the returned datasets.
+
+Some original series may have suppressed or missing values in the middle of
+their span. These series are also removed since seasonally adjusted and trend
+estimates cannot be generated from them by X-13ARIMA-SEATS or JDemetra+ due
+to the missingness.
+
+(ABS seasonally adjusted and trend series that are too short or contain
+suppressed or missing values are retained since these only need to be
+compared or displayed. They are also not restricted to the most recent 500
+observations in the returned dataset.)
 
 Any seasonally adjusted and trend series that do not have a corresponding
 original series in the ABS data are also removed. This is because seasonally
 adjusted and trend estimates cannot be generated without an original series,
 obviously, so there is nothing to compare or display. (Therefore, if an
-original series is removed because of missingness in the middle as
-described above, then its corresponding seasonally adjusted and trend
-series will also be removed.)
+original series is removed because it is too short or contains missingness
+in the middle as described above, then its corresponding seasonally adjusted
+and trend series will also be removed.)
 }
 \examples{
 \dontrun{

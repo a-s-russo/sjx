@@ -37,38 +37,39 @@ library("zoo")
 #' to the 'Data downloads' tab of a publication, right-click on the 'Download
 #' XLSX' hyperlink for the chosen table, and select 'Copy link'.
 #' 
-#' Only the most recent 500 observations for the series are read in, as
-#' X-13ARIMA-SEATS will fail to execute if the series are too long.
-#' 
 #' The included series start and end variables in the metadata ('Index' sheet of
 #' the downloaded spreadsheet) are ignored. The reason is because some series
 #' values in the data ('Data1' sheet) are suppressed or missing at the start
 #' and/or end of the series, meaning these included variables don't align with
-#' what's really in the data sheet containing the time series values. By
-#' creating series start and end variables based on the common span across all
-#' series in the data sheet, errors are reduced for series with potentially
-#' missing data at the start and/or end periods. Furthermore, for a given table
-#' (spreadsheet), all plots have the same time scale, which aids comparisons.
+#' what's really in the data sheet containing the time series values.
 #' 
-#' Some original series may also have suppressed or missing values in the middle
-#' of them (rather than at the start and/or end). These series are removed from
-#' the returned datasets since seasonally adjusted and trend estimates cannot be
-#' generated from them by X-13ARIMA-SEATS or JDemetra+ due to the missingness.
-#' (ABS seasonally adjusted and trend series with suppressed or missing values
-#' in the middle are retained since these only need to be compared or 
-#' displayed.)
+#' For original series, only the most recent 500 observations are read in, as
+#' X-13ARIMA-SEATS will fail to execute if the series are too long. Similarly,
+#' any original series that are too short to be seasonally adjusted and trended
+#' by X-13ARIMA-SEATS (that is, series containing less than three year's worth
+#' of data) are removed from the returned datasets.
+#' 
+#' Some original series may have suppressed or missing values in the middle of
+#' their span. These series are also removed since seasonally adjusted and trend
+#' estimates cannot be generated from them by X-13ARIMA-SEATS or JDemetra+ due
+#' to the missingness.
+#' 
+#' (ABS seasonally adjusted and trend series that are too short or contain
+#' suppressed or missing values are retained since these only need to be
+#' compared or displayed. They are also not restricted to the most recent 500
+#' observations in the returned dataset.)
 #' 
 #' Any seasonally adjusted and trend series that do not have a corresponding
 #' original series in the ABS data are also removed. This is because seasonally
 #' adjusted and trend estimates cannot be generated without an original series,
 #' obviously, so there is nothing to compare or display. (Therefore, if an
-#' original series is removed because of missingness in the middle as
-#' described above, then its corresponding seasonally adjusted and trend
-#' series will also be removed.)
+#' original series is removed because it is too short or contains missingness
+#' in the middle as described above, then its corresponding seasonally adjusted
+#' and trend series will also be removed.)
 #'
 #' @param url download link to the data
 #' 
-#' @importFrom dplyr all_of any_of filter mutate rename select select_if slice_tail
+#' @importFrom dplyr all_of any_of filter first last mutate rename select select_if slice_tail
 #' @importFrom httr http_error
 #' @importFrom janitor clean_names
 #' @importFrom lubridate month quarter year ymd
@@ -103,6 +104,7 @@ download_ts <- function(url) {
   stopifnot("The URL does not link to the ABS website" = startsWith(url, "https://www.abs.gov.au/"))
   stopifnot("The URL does not link to a data download file on the ABS website" = endsWith(url, ".xlsx"))
   
+  # Initiate messages vector
   messages <- character(0)
   
   # Download data spreadsheet
@@ -116,15 +118,50 @@ download_ts <- function(url) {
     "The 'Index' and/or 'Data1' sheets were not found in the downloaded ABS spreadsheet file" = all(c("Index", "Data1") %in% excel_sheets(raw_data))
   )
   
+  # Read in series metadata
+  series_metadata <-
+    read_excel(
+      raw_data,
+      sheet = "Index",
+      skip = 9,
+      col_names = TRUE,
+      .name_repair = "unique_quiet"
+    )
+  
+  # Clean series metadata
+  series_metadata <- series_metadata |>
+    select_if(~!all(is.na(.))) |> # Discard empty columns
+    na.omit() |> # Discard junk (empty and copyright) rows; note this must come after discarding any empty columns!
+    clean_names() |>
+    mutate(freq_name = .data$freq,
+           freq_num = ifelse(.data$freq == "Quarter", 4, 12)) |>
+    select(-c("series_start", "series_end", "freq")) # Drop start and end variables since these do not always exclude periods with suppressed or missing observations
+  
+  # Check that series are either monthly or quarterly
+  freq_num <- unique(series_metadata$freq_num)
+  stopifnot("The frequency of each series must be the same" = length(freq_num) == 1)
+  freq_name <- tolower(unique(series_metadata$freq_name))
+  stopifnot(
+    "The downloaded ABS spreadsheet file contains series of frequencies other than monthly or quarterly" = freq_num %in% c(4, 12)
+  )
+  
+  # Check for the existence of only original series in the initially downloaded spreadsheet file before any data cleaning
+  orig_msg_flag <-
+    FALSE # Existence of only original series also checked later after data cleaning, so don't warn twice
+  if (length(setdiff(series_metadata$series_type, "Original")) == 0) {
+    messages <-
+      c(messages,
+        "The downloaded ABS spreadsheet file only contains original series")
+    orig_msg_flag <- TRUE
+  }
+  
   # Read series data sheet
   series_data <- read_excel(raw_data, sheet = "Data1", skip = 9) |>
     rename(period = "Series ID") |>
     mutate(period = as.Date(.data$period))
   
-  # The order of the following operations is important!
-  
   # Remove series for which all observations are suppressed or missing
-  empty_series <- colnames(select_if(series_data, ~all(is.na(.))))
+  empty_series <- colnames(select_if(series_data, ~ all(is.na(.))))
   series_data <- select(series_data, -(all_of(empty_series)))
   stopifnot(
     "After removing series for which all observations are suppressed or missing, no series exist in the series data sheet" = ncol(series_data) > 1
@@ -136,38 +173,44 @@ download_ts <- function(url) {
       "Series for which all observations are suppressed or missing have been removed"
     )
   
-  # Remove trailing and leading observations that are suppressed or missing
-  nrow_before_trimming <- nrow(series_data)
-  series_data <- na.trim(series_data)
-  nrow_after_trimming <- nrow(series_data)
-  if (nrow_before_trimming != nrow_after_trimming)
-    messages <-
-    c(
-      messages,
-      "Periods at the start and/or end of any series with suppressed or missing data have been removed from all series"
-    )
-  
-  # Read in series metadata
-  series_metadata <-
-    read_excel(
-      raw_data,
-      sheet = "Index",
-      skip = 9,
-      col_names = TRUE,
-      .name_repair = "unique_quiet"
-    )
-  
-  # Remove original series with suppressed or missing observations in the middle
-  orig_series <- series_metadata |>
-    filter(series_metadata$`Series Type` == "Original") |>
-    pull("Series ID") # Extract series IDs for original series
+  # Remove/restrict original series that are:
+  # - suppressed or missing in the middle
+  # - too long
+  # - too short
+  orig_seriesIDs <- series_metadata |>
+    filter(.data$series_type == "Original") |>
+    pull(.data$series_id) |> # Extract series IDs for original series
+    setdiff(empty_series) # Remove empty series
   partial_series <-
-    colnames(select_if(series_data, ~any(is.na(.)))) # Identify any series with suppressed or missing observations
-  partial_series <-
-    intersect(partial_series, orig_series) # Limit to only original series
-  series_data <- select(series_data, -(all_of(partial_series)))
+    NULL # Remove these series (X-13 for both RJDemetra+ and 'seasonal' cannot handle missing observations, so remove)
+  long_series <-
+    NULL # Restrict these series (X-13 for 'seasonal' package will fail if series is too long, so select most recent data)
+  short_series <-
+    NULL # Remove these series (X-13 for both RJDemetra+ and 'seasonal' package will fail if series is too short, so remove)
+  max_series_length <- 500
+  for (seriesID in orig_seriesIDs) {
+    trimmed_series <- na.trim(series_data[, seriesID])
+    len_trimmed_series <- nrow(trimmed_series)
+    if (any(is.na(trimmed_series)))
+      partial_series <- c(partial_series, seriesID)
+    if (len_trimmed_series > max_series_length) {
+      long_series <- c(long_series, seriesID)
+      index <- len_trimmed_series - max_series_length
+      series_data[1:index, seriesID] <-
+        NA # Make missing the back history of series that is too old
+    }
+    if ((freq_num == 4 &
+         len_trimmed_series < 12 * 3) |
+        (freq_num == 12 &
+         len_trimmed_series < 4 * 3))
+      short_series <- c(short_series, seriesID)
+  }
+  series_data <-
+    select(series_data, -(all_of(c(
+      partial_series, short_series
+    ))))
   stopifnot(
-    "After removing original series with suppressed or missing observations in the middle of them, no series exist in the series data sheet" = ncol(series_data) > 1
+    "After removing original series that are too short or with suppressed or missing observations in the middle of them, no series exist in the series data sheet" = ncol(series_data) > 1
   )
   if (length(partial_series) != 0)
     messages <-
@@ -175,89 +218,24 @@ download_ts <- function(url) {
       messages,
       "Original series with suppressed or missing observations in the middle of them have been removed"
     )
-  
-  # Restrict to most recent observations
-  nrow_before_slicing <- nrow(series_data)
-  series_data <-
-    slice_tail(series_data, n = 500) # X-13 in 'seas' will fail if series is too long, so select most recent data
-  nrow_after_slicing <- nrow(series_data)
-  if (nrow_before_slicing != nrow_after_slicing)
+  if (length(long_series) != 0)
     messages <-
     c(
       messages,
-      "The lengths of the series are potentially too long for X-13ARIMA-SEATS; only the most recent 500 observations for each have been included"
+      "Original series that are too long have been restricted to the most recent 500 observations"
     )
-  
-  # Check for the existence of only original series in the initially downloaded spreadsheet file before any data cleaning
-  orig_msg_flag <-
-    FALSE # Existence of only original series also checked later after data cleaning, so don't warn twice
-  if (length(setdiff(na.omit(series_metadata$`Series Type`), "Original")) == 0) {
+  if (length(short_series) != 0)
     messages <-
-      c(messages,
-        "The downloaded ABS spreadsheet file only contains original series")
-    orig_msg_flag <- TRUE
-  }
-  
-  # Remove irrelevant metadata
-  series_metadata <- series_metadata |>
-    select_if(~!all(is.na(.))) |> # Discard empty columns
-    na.omit() |> # Discard junk (empty and copyright) rows; note this must come after discarding any empty columns!
-    clean_names() |>
-    within(rm(list = c("series_start", "series_end"))) |>
-    filter(!(.data$series_id %in% c(empty_series, partial_series))) # Remove empty and partial series
-  freq <- unique(series_metadata$freq)
-  stopifnot(
-    "The downloaded ABS spreadsheet file contains series of frequencies other than monthly or quarterly" = (freq %in% c("Month", "Quarter"))
-  )
-  if ((freq == "Month" &
-       nrow(series_data) < 12 * 3) |
-      (freq == "Quarter" & nrow(series_data) < 4 * 3)) {
-    stop(
-      "The lengths of the series are too short; at least three year's worth of data are required"
-    )
-  }
-  
-  # Create common start and end dates across series
-  series_metadata <- series_metadata |>
-    mutate(
-      common_series_start = as.Date(series_data$period[1]),
-      common_series_end = as.Date(series_data$period[nrow(series_data)]),
-      common_start_year = as.Date(year(ymd(
-        .data$common_series_start
-      ))),
-      common_start_period = as.Date(ifelse(
-        series_metadata$freq == "Month", month(ymd(.data$common_series_start)), quarter(ymd(.data$common_series_start))
-      )),
-      common_end_year = as.Date(year(ymd(
-        .data$common_series_end
-      ))),
-      common_end_period = as.Date(ifelse(
-        series_metadata$freq == "Month", month(ymd(.data$common_series_end)), quarter(ymd(.data$common_series_end))
-      ))
+    c(
+      messages,
+      "Original series that are shorter than three year's worth of data have been removed"
     )
   
-  # Create numeric version of frequency variable
+  # Remove series from metadata
   series_metadata <- series_metadata |>
-    mutate(
-      freq_name = .data$freq,
-      freq_num = ifelse(series_metadata$freq == "Quarter", 4, 12)
-    ) |>
-    within(rm("freq"))
-  
-  # Create variables for the publication and table titles
-  titles <-
-    read_excel(
-      raw_data,
-      sheet = "Index",
-      range = "B5:B6",
-      col_names = FALSE,
-      .name_repair = "unique_quiet"
-    )
-  title_pub <- as.character(titles[1, 1])
-  title_tab <- as.character(titles[2, 1])
-  series_metadata <- series_metadata |>
-    mutate(publication = title_pub,
-           table = title_tab)
+    filter(!(
+      .data$series_id %in% c(empty_series, partial_series, short_series)
+    ))
   
   # Keep only seasonally adjusted and trend series that have a corresponding original series
   nrow_before_excluding <- nrow(series_metadata)
@@ -289,6 +267,58 @@ download_ts <- function(url) {
   stopifnot(
     "After data cleaning, the series IDs do not match across the series data and metadata sheets" = length(setdiff(data_seriesIDs, meta_seriesIDs)) == 0
   )
+  
+  # Create start and end dates variables
+  seriesIDs <- series_metadata$series_id
+  series_metadata <- series_metadata |>
+    mutate(
+      start = NA,
+      start_year = NA,
+      start_period = NA,
+      end = NA,
+      end_year = NA,
+      end_period = NA
+    )
+  for (seriesID in seriesIDs) {
+    # Extract sub-span containing non-missing data
+    nonmissing_span <-
+      series_data[!is.na(series_data[, seriesID]), "period"]$period
+    nonmissing_span <-
+      ceiling_date(as.Date(nonmissing_span), unit = freq_name) - days(1) # Set date to last day of period (to ensure that quarterly data refers to the last month in the quarter rather than the first or second)
+    
+    # Create start date variables on series metadata
+    span_start <- first(nonmissing_span)
+    series_metadata[series_metadata$series_id == seriesID, "start"] <-
+      span_start
+    series_metadata[series_metadata$series_id == seriesID, "start_year"] <-
+      year(ymd(span_start))
+    series_metadata[series_metadata$series_id == seriesID, "start_period"] <-
+      ifelse(freq_num == 12, month(ymd(span_start)), quarter(ymd(span_start)))
+    
+    # Create end date variables on series metadata
+    span_end <- last(nonmissing_span)
+    series_metadata[series_metadata$series_id == seriesID, "end"] <-
+      span_end
+    series_metadata[series_metadata$series_id == seriesID, "end_year"] <-
+      year(ymd(span_end))
+    series_metadata[series_metadata$series_id == seriesID, "end_period"] <-
+      ifelse(freq_num == 12, month(ymd(span_end)), quarter(ymd(span_end)))
+  }
+  
+  # Create variables for the publication and table titles
+  titles <-
+    read_excel(
+      raw_data,
+      sheet = "Index",
+      range = "B5:B6",
+      col_names = FALSE,
+      .name_repair = "unique_quiet"
+    )
+  title_pub <- as.character(titles[1, 1])
+  title_tab <- as.character(titles[2, 1])
+  series_metadata <- series_metadata |>
+    mutate(publication = title_pub,
+           table = title_tab)
   
   # Generate list of series data and metadata
   results <- list(data = series_data, meta = series_metadata)
@@ -973,13 +1003,16 @@ create_tsplot_comp <- function(series, dataItem) {
       )
     ) +
       geom_line() +
-      labs(title = series_description,
-           subtitle = paste0(
-             ifelse(type == "seas", "Seasonally Adjusted", "Trend"),
-             " (",
-             units,
-             ")"
-           )) +
+      labs(
+        # Use 'deparse' since some data item descriptions begin with '>' which gets confused as an HTML-like tag in ggtext
+        title = deparse(series_description),
+        subtitle = paste0(
+          ifelse(type == "seas", "Seasonally Adjusted", "Trend"),
+          " (",
+          units,
+          ")"
+        )
+      ) +
       theme(
         plot.title = element_textbox_simple(halign = 0.5, margin = margin(10, 0, 10, 0)),
         plot.subtitle = element_text(hjust = 0.5)
