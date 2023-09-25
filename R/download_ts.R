@@ -112,8 +112,14 @@ download_ts <- function(url) {
     select_if(~!all(is.na(.))) |> # Discard empty columns
     na.omit() |> # Discard junk (empty and copyright) rows; note this must come after discarding any empty columns!
     clean_names() |>
-    mutate(freq_name = .data$freq,
-           freq_num = ifelse(.data$freq == "Quarter", 4, 12)) |>
+    mutate(
+      freq_name = .data$freq,
+      freq_num = ifelse(
+        .data$freq == "Quarter",
+        4,
+        ifelse(.data$freq == "Month", 12, NA)
+      )
+    ) |>
     select(-c("series_start", "series_end", "freq")) # Drop start and end variables since these do not always exclude periods with suppressed or missing observations
   
   # Check that series are either monthly or quarterly
@@ -134,13 +140,18 @@ download_ts <- function(url) {
     orig_msg_flag <- TRUE
   }
   
+  # Check for the existence of only seasonally adjusted and/or trend series in the initially downloaded spreadsheet file before any data cleaning
+  stopifnot(
+    "The downloaded ABS spreadsheet file does not contain any original series" = "Original" %in% unique(series_metadata$series_type)
+  )
+  
   # Read series data sheet
   series_data <- read_excel(raw_data, sheet = "Data1", skip = 9) |>
     rename(period = "Series ID") |>
     mutate(period = as.Date(.data$period))
   
   # Remove series for which all observations are suppressed or missing
-  empty_series <- colnames(select_if(series_data, ~ all(is.na(.))))
+  empty_series <- colnames(select_if(series_data, ~all(is.na(.))))
   series_data <- select(series_data, -(all_of(empty_series)))
   stopifnot(
     "After removing series for which all observations are suppressed or missing, no series exist in the series data sheet" = ncol(series_data) > 1
@@ -166,22 +177,33 @@ download_ts <- function(url) {
     NULL # Restrict these series (X-13 for 'seasonal' package will fail if series is too long, so select most recent data)
   short_series <-
     NULL # Remove these series (X-13 for both RJDemetra+ and 'seasonal' package will fail if series is too short, so remove)
-  max_series_length <- 500
+  max_series_length <-
+    500 # This must be > 12 * min_series_length for logic below to make sense
+  min_series_length <- 3
   for (seriesID in orig_seriesIDs) {
     trimmed_series <- na.trim(series_data[, seriesID])
     len_trimmed_series <- nrow(trimmed_series)
-    if (any(is.na(trimmed_series)))
+    
+    # Check for partial series
+    if (any(is.na(trimmed_series))) {
       partial_series <- c(partial_series, seriesID)
+      next # If series is partial, then don't check for being too long or too short since it will be removed anyway
+    }
+    
+    # Check for long series
     if (len_trimmed_series > max_series_length) {
       long_series <- c(long_series, seriesID)
       index <- len_trimmed_series - max_series_length
       series_data[1:index, seriesID] <-
-        NA # Make missing the back history of series that is too old
+        NA # Make missing the back history of the series that is too old
+      next # Series can't be both too long and too short
     }
+    
+    # Check for short series
     if ((freq_num == 4 &
-         len_trimmed_series < 12 * 3) |
+         len_trimmed_series < 4 * min_series_length) |
         (freq_num == 12 &
-         len_trimmed_series < 4 * 3))
+         len_trimmed_series < 12 * min_series_length))
       short_series <- c(short_series, seriesID)
   }
   series_data <-
@@ -262,8 +284,7 @@ download_ts <- function(url) {
     # Extract sub-span containing non-missing data
     nonmissing_span <-
       series_data[!is.na(series_data[, seriesID]), "period"]$period
-    nonmissing_span <-
-      ceiling_date(as.Date(nonmissing_span), unit = freq_name) - days(1) # Set date to last day of period (to ensure that quarterly data refers to the last month in the quarter rather than the first or second)
+    nonmissing_span <- as.Date(nonmissing_span)
     
     # Create start date variables on series metadata
     span_start <- first(nonmissing_span)
@@ -378,7 +399,8 @@ get_dataItems <- function(series) {
 #' @export
 run_X13 <- function(ts) {
   stopifnot("Argument class is not a time series object" = is.ts(ts) == TRUE)
-  output <- seas(ts, x11 = "") # X11 option specifies X-11; overrides the 'seats' spec
+  output <-
+    seas(ts, x11 = "") # X11 option specifies X-11; overrides the 'seats' spec
   results <- list("seas" = output$data[, "seasonaladj"],
                   "tren" = output$data[, "trend"])
   return(results)
@@ -426,6 +448,15 @@ run_RJD <- function(ts) {
 #' package, a NULL object (rather than an error) is returned if the series ID is
 #' missing.
 #' 
+#' The time span for any ABS seasonally adjusted and trend time series objects
+#' that are returned align with the start and end dates of the corresponding
+#' original series within each data item description to ensure alignment among
+#' the three series. This is achieved by filling suppressed or missing
+#' observations in the ABS seasonally adjusted and trend series with NA values.
+#' (The seasonally adjusted and trend series generated by X-13ARIMA-SEATS and
+#' JDemetra+ will always align with the corresponding ABS original series since
+#' the original series is used to generate them.)
+#' 
 #' @param series list returned from `download_ts` containing series data and
 #' metadata
 #' @param seriesID series ID
@@ -465,25 +496,25 @@ create_ts <- function(series, seriesID) {
   data <- series$data
   meta <- series$meta
   
-  # Create common start and end periods
-  common_start_year <-
-    filter(meta, .data$series_id == seriesID)$common_start_year
-  common_start_month <-
-    filter(meta, .data$series_id == seriesID)$common_start_period
-  common_end_year <-
-    filter(meta, .data$series_id == seriesID)$common_end_year
-  common_end_month <-
-    filter(meta, .data$series_id == seriesID)$common_end_period
-  
-  # Redefine frequency variable
-  freq <- filter(meta, .data$series_id == seriesID)$freq_num
+  # Use start/end dates from corresponding original series to ensure alignment
+  dataItem <-
+    as.character(meta[meta$series_id == seriesID, "data_item_description"])
+  seriesID_meta <-
+    filter(meta,
+           .data$data_item_description == dataItem &
+             .data$series_type == "Original")
+  start_year <- seriesID_meta$start_year
+  start_period <- seriesID_meta$start_period
+  end_year <- seriesID_meta$end_year
+  end_period <- seriesID_meta$end_period
+  freq_num <- seriesID_meta$freq_num
   
   # Generate time series object
   results <- ts(
     pull(data, seriesID),
-    start = c(common_start_year, common_start_month),
-    end = c(common_end_year, common_end_month),
-    frequency = freq
+    start = c(start_year, start_period),
+    end = c(end_year, end_period),
+    frequency = freq_num
   )
   
   return(results)
@@ -712,10 +743,18 @@ create_tsdf_comp <- function(series, dataItem) {
   # Extract time series objects for given data item description
   dataItem_ts <- create_ts_comp(series, dataItem)
   
+  # Extract span for corresponding original series
+  freq_name <- tolower(unique(dataItem_ts$metadata$freq_name))
+  orig_series <-
+    filter(series$meta,
+           .data$data_item_description == dataItem &
+             .data$series_type == "Original")
+  start <- orig_series$start
+  end <- orig_series$end
+  orig_span <- seq(start, end, by = freq_name)
+  
   # Convert into data frame
-  freq_type <- tolower(unique(dataItem_ts$metadata$freq_name))
-  results <-
-    data.frame("period" = ceiling_date(as.Date(dataItem_ts$ABS_orig), unit = freq_type) - days(1)) # Set date to last day of period (to ensure that quarterly data refers to the last month in the quarter rather than the first or second)
+  results <- data.frame("period" = orig_span)
   if (!is.null(dataItem_ts$ABS_seas))
     # Series might not be published in ABS data
     results <-
@@ -917,11 +956,11 @@ create_tsplot_comp <- function(series, dataItem) {
     end_date <-
       unique(plot_data$period)[length(unique(plot_data$period))]
     end_yr <- as.character(year(end_date))
-    freq <- tolower(unique(dataItem_df$metadata$freq_name))
+    freq_name <- tolower(unique(dataItem_df$metadata$freq_name))
     start_period <- format(unique(plot_data$period)[1], "%B")
     end_period <-
       format(unique(plot_data$period)[length(unique(plot_data$period))], "%B")
-    period_qualifter <- ifelse(freq == "quarter", "Qtr", "")
+    period_qualifter <- ifelse(freq_name == "quarter", "Qtr", "")
     timespan <-
       str_squish(
         paste(
@@ -961,7 +1000,7 @@ create_tsplot_comp <- function(series, dataItem) {
         colour = .data$method
       )
     ) +
-      geom_line() +
+      geom_line(na.rm = TRUE) +
       labs(
         # Use 'deparse' since some data item descriptions begin with '>' which gets confused as an HTML-like tag in ggtext
         title = deparse(series_description),
@@ -976,7 +1015,7 @@ create_tsplot_comp <- function(series, dataItem) {
         plot.title = element_textbox_simple(halign = 0.5, margin = margin(10, 0, 10, 0)),
         plot.subtitle = element_text(hjust = 0.5)
       ) + # 'element_textbox_simple' automatically wraps long titles
-      xlab(paste0("\n", timespan)) +
+      xlab(paste0("\nABS original series span: ", timespan)) +
       ylab("") +
       scale_color_discrete(name = "Method", labels = labels) +
       scale_y_continuous(limits = c(y_min, y_max),
