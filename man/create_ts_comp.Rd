@@ -45,6 +45,7 @@ ext <- ".xlsx" # File extension
 URL <- paste0(ABS, pub, ref, cat, tab, ext)
 
 # Run function
+emp <- download_ts(URL)
 emp_total <- create_ts_comp(emp, "Employed total ;  Persons ;")
 }
 

@@ -43,6 +43,7 @@ ext <- ".xlsx" # File extension
 URL <- paste0(ABS, pub, ref, cat, tab, ext)
 
 # Run function
+emp <- download_ts(URL)
 emp_all <- create_ts_table(emp)
 }
 

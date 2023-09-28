@@ -60,6 +60,7 @@ ext <- ".xlsx" # File extension
 URL <- paste0(ABS, pub, ref, cat, tab, ext)
 
 # Run function
+emp <- download(URL)
 emp_plots <- create_tsplot_table(emp)
 }
 

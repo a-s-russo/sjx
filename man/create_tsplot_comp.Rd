@@ -61,6 +61,7 @@ ext <- ".xlsx" # File extension
 URL <- paste0(ABS, pub, ref, cat, tab, ext)
 
 # Run function
+emp <- download_ts(URL)
 create_tsplot_comp(emp, "Employed total ;  Persons ;")
 
 # Plot still produced even when ABS seasonally adjusted and/or trend non-existent:
