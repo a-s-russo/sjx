@@ -5,11 +5,11 @@
 \alias{LFA_Jul23_Table1}
 \title{Labour Force Australia, July 2023, Table 1}
 \format{
-list containing the downloaded and cleaned series data and metadata
+A list containing the downloaded and cleaned series data and metadata
 \describe{
-\item{data}{tibble containing the original, seasonally adjusted and trend
+\item{data}{A tibble containing the original, seasonally adjusted and trend
 series}
-\item{meta}{tibble containing the associated metadata for each series}
+\item{meta}{A tibble containing the associated metadata for each series}
 }
 }
 \source{

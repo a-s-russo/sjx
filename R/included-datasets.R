@@ -6,11 +6,11 @@
 #' current prices collected by the
 #' [Australian Bureau of Statistics](https://www.abs.gov.au/).
 #'
-#' @format list containing the downloaded and cleaned series data and metadata
+#' @format A list containing the downloaded and cleaned series data and metadata
 #' \describe{
-#'   \item{data}{tibble containing the original, seasonally adjusted and trend
+#'   \item{data}{A tibble containing the original, seasonally adjusted and trend
 #'   series}
-#'   \item{meta}{tibble containing the associated metadata for each series}
+#'   \item{meta}{A tibble containing the associated metadata for each series}
 #' }
 #' @source <https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023#data-downloads>
 "BIA_Mar23_Table3"
@@ -21,11 +21,11 @@
 #' of goods and services in current prices collected by the
 #' [Australian Bureau of Statistics](https://www.abs.gov.au/).
 #'
-#' @format list containing the downloaded and cleaned series data and metadata
+#' @format A list containing the downloaded and cleaned series data and metadata
 #' \describe{
-#'   \item{data}{tibble containing the original, seasonally adjusted and trend
+#'   \item{data}{A tibble containing the original, seasonally adjusted and trend
 #'   series}
-#'   \item{meta}{tibble containing the associated metadata for each series}
+#'   \item{meta}{A tibble containing the associated metadata for each series}
 #' }
 #' @source <https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023#data-downloads>
 "BIA_Mar23_Table6"
@@ -35,11 +35,11 @@
 #' A dataset containing monthly estimates of labour force status by sex
 #' collected by the [Australian Bureau of Statistics](https://www.abs.gov.au/).
 #'
-#' @format list containing the downloaded and cleaned series data and metadata
+#' @format A list containing the downloaded and cleaned series data and metadata
 #' \describe{
-#'   \item{data}{tibble containing the original, seasonally adjusted and trend
+#'   \item{data}{A tibble containing the original, seasonally adjusted and trend
 #'   series}
-#'   \item{meta}{tibble containing the associated metadata for each series}
+#'   \item{meta}{A tibble containing the associated metadata for each series}
 #' }
 #' @source <https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/jul-2023#data-downloadss>
 "LFA_Jul23_Table1"

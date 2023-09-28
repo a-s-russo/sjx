@@ -5,11 +5,11 @@
 \alias{BIA_Mar23_Table3}
 \title{Business Indicators Australia, March 2023, Table 3}
 \format{
-list containing the downloaded and cleaned series data and metadata
+A list containing the downloaded and cleaned series data and metadata
 \describe{
-\item{data}{tibble containing the original, seasonally adjusted and trend
+\item{data}{A tibble containing the original, seasonally adjusted and trend
 series}
-\item{meta}{tibble containing the associated metadata for each series}
+\item{meta}{A tibble containing the associated metadata for each series}
 }
 }
 \source{
