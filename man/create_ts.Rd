@@ -10,7 +10,8 @@ create_ts(series, seriesID)
 \item{series}{The list returned from \code{download_ts} containing series data and
 metadata}
 
-\item{seriesID}{A series ID}
+\item{seriesID}{The series ID of the series for which results are to be
+returned}
 }
 \value{
 A time series object for a single series

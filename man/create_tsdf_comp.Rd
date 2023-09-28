@@ -11,7 +11,7 @@ create_tsdf_comp(series, dataItem)
 \item{series}{The list returned from \code{download_ts} containing series data and
 metadata}
 
-\item{dataItem}{A data item description for which results are to be returned}
+\item{dataItem}{The data item description for which results are to be returned}
 }
 \value{
 The series metadata, and long data frame of original, seasonally adjusted

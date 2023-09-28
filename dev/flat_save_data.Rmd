@@ -193,11 +193,11 @@ download_ts <- function(url) {
     pull(.data$series_id) |> # Extract series IDs for original series
     setdiff(empty_series) # Remove empty series
   partial_series <-
-    NULL # Remove these series (X-13 for both RJDemetra+ and 'seasonal' cannot handle missing observations, so remove)
+    NULL # Remove these series (X-13ARIMA-SEATS in both the 'RJDemetra' and 'seasonal' packages cannot handle missing observations, so remove)
   long_series <-
-    NULL # Restrict these series (X-13 for 'seasonal' package will fail if series is too long, so select most recent data)
+    NULL # Restrict these series (X-13ARIMA-SEATS in the 'seasonal' package will fail if series is too long, so select most recent data)
   short_series <-
-    NULL # Remove these series (X-13 for both RJDemetra+ and 'seasonal' package will fail if series is too short, so remove)
+    NULL # Remove these series (X-13ARIMA-SEATS in both the 'RJDemetra' and 'seasonal' packages will fail if series is too short, so remove)
   max_series_length <-
     500 # This must be > 12 * min_series_length for logic below to make sense
   min_series_length <- 3
@@ -429,11 +429,17 @@ get_dataItems <- function(series) {
 #' @export
 run_X13 <- function(ts) {
   stopifnot("Argument class is not a time series object" = is.ts(ts) == TRUE)
-  output <-
-    seas(ts, x11 = "") # X11 option specifies X-11; overrides the 'seats' spec
-  results <- list("seas" = output$data[, "seasonaladj"],
-                  "tren" = output$data[, "trend"])
-  return(results)
+  tryCatch({
+    output <-
+      seas(ts, x11 = "") # X11 option specifies X-11; overrides the 'seats' spec
+    results <- list("seas" = output$data[, "seasonaladj"],
+                    "tren" = output$data[, "trend"])
+    return(results)
+  },
+  error = function(e) {
+    message("X-13ARIMA-SEATS failed to run")
+    return(NULL)
+  })
 }
 ```
 
@@ -461,10 +467,16 @@ run_X13 <- function(ts) {
 #' @export
 run_RJD <- function(ts) {
   stopifnot("Argument class is not a time series object" = is.ts(ts) == TRUE)
-  output <- x13(ts)
-  results <- list("seas" = output$final$series[, "sa"],
-                  "tren" = output$final$series[, "t"])
-  return(results)
+  tryCatch({
+    output <- x13(ts)
+    results <- list("seas" = output$final$series[, "sa"],
+                    "tren" = output$final$series[, "t"])
+    return(results)
+  },
+  error = function(e) {
+    message("JDemetra+ failed to run")
+    return(NULL)
+  })
 }
 ```
 
@@ -484,7 +496,8 @@ run_RJD <- function(ts) {
 #' 
 #' @param series The list returned from `download_ts` containing series data and
 #' metadata
-#' @param seriesID A series ID
+#' @param seriesID The series ID of the series for which results are to be
+#' returned
 #' 
 #' @importFrom dplyr filter pull
 #' @importFrom rlang .data
@@ -566,7 +579,7 @@ create_ts <- function(series, seriesID) {
 #' 
 #' @param series The list returned from `download_ts` containing series data and
 #' metadata
-#' @param dataItem A data item description for which results are to be returned
+#' @param dataItem The data item description for which results are to be returned
 #' 
 #' @return The series metadata, and original, seasonally adjusted and trend series,
 #' for a single data item description
@@ -604,41 +617,44 @@ create_ts_comp <- function(series, dataItem) {
   seriesID_tren <-
     dataItem_meta$series_id[dataItem_meta$series_type == "Trend"]
   
-  # Generate ABS original, seasonally adjusted and trend time series object
+  # Generate ABS original, seasonally adjusted and trend time series object (if published)
   ABS_orig_ts <- create_ts(series, seriesID_orig)
-  ABS_seas_ts <- create_ts(series, seriesID_seas)
-  ABS_tren_ts <- create_ts(series, seriesID_tren)
+  ABS_seas_ts <-
+    create_ts(series, seriesID_seas) # Series might not be published in ABS data
+  ABS_tren_ts <-
+    create_ts(series, seriesID_tren) # Series might not be published in ABS data
   
-  # Generate X-13ARIMA-SEATS seasonally adjusted and trend time series objects
-  X13_output <- run_X13(ABS_orig_ts)
-  X13_seas_ts <- X13_output$seas
-  X13_tren_ts <- X13_output$tren
+  # Generate X-13ARIMA-SEATS seasonally adjusted and trend time series objects (if possible)
+  X13_output <- run_X13(ABS_orig_ts) # X-13ARIMA-SEATS might fail to run
+  X13_seas_ts <- X13_output$seas # Series might not be generated
+  X13_tren_ts <- X13_output$tren # Series might not be generated
   
-  # Generate JDemetra+ seasonally adjusted and trend time series objects
-  RJD_output <- run_RJD(ABS_orig_ts)
-  RJD_seas_ts <- RJD_output$seas
-  RJD_tren_ts <- RJD_output$tren
+  # Generate JDemetra+ seasonally adjusted and trend time series objects (if possible)
+  RJD_output <- run_RJD(ABS_orig_ts) # JDemetra+ might fail to run
+  RJD_seas_ts <- RJD_output$seas # Series might not be generated
+  RJD_tren_ts <- RJD_output$tren # Series might not be generated
   
-  # Return list of time series objects
+  # Return list of time series objects (if published/generated)
   results <-
     list("metadata" = dataItem_meta, "ABS_orig" = ABS_orig_ts)
   if (!is.null(ABS_seas_ts))
-    # Series might not be published in ABS data
     results <-
     append(results, list("ABS_seas" = ABS_seas_ts))
   if (!is.null(ABS_tren_ts))
-    # Series might not be published in ABS data
     results <-
     append(results, list("ABS_tren" = ABS_tren_ts))
-  results <- append(
-    results,
-    list(
-      "X13_seas" = X13_seas_ts,
-      "X13_tren" = X13_tren_ts,
-      "RJD_seas" = RJD_seas_ts,
-      "RJD_tren" = RJD_tren_ts
-    )
-  )
+  if (!is.null(X13_seas_ts))
+    results <-
+    append(results, list("X13_seas" = X13_seas_ts))
+  if (!is.null(X13_tren_ts))
+    results <-
+    append(results, list("X13_tren" = X13_tren_ts))
+  if (!is.null(RJD_seas_ts))
+    results <-
+    append(results, list("RJD_seas" = RJD_seas_ts))
+  if (!is.null(RJD_tren_ts))
+    results <-
+    append(results, list("RJD_tren" = RJD_tren_ts))
   
   return(results)
 }
@@ -710,7 +726,7 @@ create_ts_table <- function(series) {
       no_dataItems,
       ": \"",
       dataItem,
-      "\""
+      "\"..."
     ))
     
     # Extract and generate time series objects for current data item description
@@ -744,7 +760,7 @@ create_ts_table <- function(series) {
 #'
 #' @param series The list returned from `download_ts` containing series data and
 #' metadata
-#' @param dataItem A data item description for which results are to be returned
+#' @param dataItem The data item description for which results are to be returned
 #' 
 #' @importFrom lubridate ceiling_date days
 #' @importFrom reshape2 melt
@@ -807,17 +823,23 @@ create_tsdf_comp <- function(series, dataItem) {
       merge(results, ABS_seas_series, by = "period", all = TRUE)
   }
   
-  # Merge on seasonally adjusted series generated by X-13ARIMA-SEATS and JDemetra+
-  X13_seas_series <-
-    data.frame("period" = ABS_orig_series$period,
-               "X13_seas" = as.numeric(dataItem_ts$X13_seas))
-  results <-
-    merge(results, X13_seas_series, by = "period", all = TRUE)
-  RJD_seas_series <-
-    data.frame("period" = ABS_orig_series$period,
-               "RJD_seas" = as.numeric(dataItem_ts$RJD_seas))
-  results <-
-    merge(results, RJD_seas_series, by = "period", all = TRUE)
+  # Merge on seasonally adjusted series generated by X-13ARIMA-SEATS (if generated)
+  if (!is.null(dataItem_ts$X13_seas)) {
+    X13_seas_series <-
+      data.frame("period" = ABS_orig_series$period,
+                 "X13_seas" = as.numeric(dataItem_ts$X13_seas))
+    results <-
+      merge(results, X13_seas_series, by = "period", all = TRUE)
+  }
+  
+  # Merge on seasonally adjusted series generated by and JDemetra+ (if generated)
+  if (!is.null(dataItem_ts$RJD_seas)) {
+    RJD_seas_series <-
+      data.frame("period" = ABS_orig_series$period,
+                 "RJD_seas" = as.numeric(dataItem_ts$RJD_seas))
+    results <-
+      merge(results, RJD_seas_series, by = "period", all = TRUE)
+  }
   
   # Merge on ABS trend series (if published)
   if (!is.null(dataItem_ts$ABS_tren)) {
@@ -831,17 +853,23 @@ create_tsdf_comp <- function(series, dataItem) {
       merge(results, ABS_tren_series, by = "period", all = TRUE)
   }
   
-  # Merge on trend series generated by X-13ARIMA-SEATS and JDemetra+
-  X13_tren_series <-
-    data.frame("period" = ABS_orig_series$period,
-               "X13_tren" = as.numeric(dataItem_ts$X13_tren))
-  results <-
-    merge(results, X13_tren_series, by = "period", all = TRUE)
-  RJD_tren_series <-
-    data.frame("period" = ABS_orig_series$period,
-               "RJD_tren" = as.numeric(dataItem_ts$RJD_tren))
-  results <-
-    merge(results, RJD_tren_series, by = "period", all = TRUE)
+  # Merge on trend series generated by X-13ARIMA-SEATS (if generated)
+  if (!is.null(dataItem_ts$X13_tren)) {
+    X13_tren_series <-
+      data.frame("period" = ABS_orig_series$period,
+                 "X13_tren" = as.numeric(dataItem_ts$X13_tren))
+    results <-
+      merge(results, X13_tren_series, by = "period", all = TRUE)
+  }
+  
+  # Merge on trend series generated by JDemetra+ (if generated)
+  if (!is.null(dataItem_ts$RJD_tren)) {
+    RJD_tren_series <-
+      data.frame("period" = ABS_orig_series$period,
+                 "RJD_tren" = as.numeric(dataItem_ts$RJD_tren))
+    results <-
+      merge(results, RJD_tren_series, by = "period", all = TRUE)
+  }
   
   # Convert into long data frame
   results <- melt(
@@ -932,7 +960,7 @@ create_tsdf_table <- function(series) {
       no_dataItems,
       ": \"",
       dataItem,
-      "\""
+      "\"..."
     ))
     
     # Extract and generate time series objects for current data item description
@@ -965,8 +993,8 @@ create_tsdf_table <- function(series) {
 #' or trend estimates are not published, then a ggplot is still returned
 #' containing only the seasonally adjusted or trend estimates generated by
 #' X-13ARIMA-SEATS and JDemetra+. If the latter fail to be generated, the ggplot
-#' will not contain them either. (A NULL object will be returned instead if the
-#' plot is empty; that is, if none of these series are published or couldn't be
+#' will not contain them either. (A NULL object will be returned if the plot is
+#' empty; that is, if none of these series are published or couldn't be
 #' generated.)
 #' 
 #' The time series plotted on each graph might not match spans or have values
@@ -978,7 +1006,7 @@ create_tsdf_table <- function(series) {
 #'
 #' @param series The list returned from `download_ts` containing series data and
 #' metadata
-#' @param dataItem A data item description for which results are to be returned
+#' @param dataItem The data item description for which results are to be returned
 #' 
 #' @importFrom ggplot2 aes element_text geom_line ggplot labs margin
 #' scale_color_discrete scale_y_continuous theme xlab ylab
@@ -1031,12 +1059,22 @@ create_tsplot_comp <- function(series, dataItem) {
   # Cycle through each series type
   for (type in c("seas", "tren")) {
     # Extract series to be plotted
-    if (type == "seas")
+    if (type == "seas") {
       plot_data <-
         dataItem_df$dataframe[dataItem_df$dataframe$method %in% c("ABS_seas", "X13_seas", "RJD_seas"), ]
-    if (type == "tren")
+      if (nrow(plot_data) == 0) {
+        message("No seasonally adjusted plot was produced")
+        next
+      }
+    }
+    if (type == "tren") {
       plot_data <-
         dataItem_df$dataframe[dataItem_df$dataframe$method %in% c("ABS_tren", "X13_tren", "RJD_tren"), ]
+      if (nrow(plot_data) == 0) {
+        message("No trend plot was produced")
+        next
+      }
+    }
     
     # Extract start and end periods for plotting purposes
     start_date <- unique(plot_data$period)[1]
@@ -1141,8 +1179,8 @@ create_tsplot_comp <- function(series, dataItem) {
 #' a ggplot is still returned containing only the seasonally adjusted or trend
 #' estimates generated by X-13ARIMA-SEATS and JDemetra+. If the latter fail to
 #' be generated, the ggplot will not contain them either. (A NULL object will be
-#' returned instead if the plot is empty; that is, if none of these series are
-#' published or couldn't be generated.)
+#' returned if the plot is empty; that is, if none of these series are published
+#' or couldn't be generated.)
 #' 
 #' The time series plotted on each graph for a given data item description might
 #' not match spans or have values missing for the following reasons:
@@ -1198,7 +1236,7 @@ create_tsplot_table <- function(series) {
       no_dataItems,
       ": \"",
       dataItem,
-      "\""
+      "\"..."
     ))
     
     # Generate and append seasonally adjusted and trend plots for current data item description
