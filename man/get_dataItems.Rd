@@ -7,11 +7,11 @@
 get_dataItems(series)
 }
 \arguments{
-\item{series}{list returned from \code{download_ts} containing series data and
+\item{series}{The list returned from \code{download_ts} containing series data and
 metadata}
 }
 \value{
-all data item descriptions in the metadata of a series
+All data item descriptions in the metadata of a series
 }
 \description{
 \code{get_dataItems} returns all unique data item descriptions in the series

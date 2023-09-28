@@ -7,11 +7,11 @@
 get_seriesIDs(series)
 }
 \arguments{
-\item{series}{list returned from \code{download_ts} containing series data and
+\item{series}{The list returned from \code{download_ts} containing series data and
 metadata}
 }
 \value{
-all series IDs in the metadata of a series
+All series IDs in the metadata of a series
 }
 \description{
 \code{get_seriesIDs} returns all series IDs in the series metadata for a

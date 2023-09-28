@@ -8,13 +8,13 @@ estimates for a single data item description}
 create_tsdf_comp(series, dataItem)
 }
 \arguments{
-\item{series}{list returned from \code{download_ts} containing series data and
+\item{series}{The list returned from \code{download_ts} containing series data and
 metadata}
 
-\item{dataItem}{data item description for which results are to be returned}
+\item{dataItem}{A data item description for which results are to be returned}
 }
 \value{
-series metadata, and long data frame of original, seasonally adjusted
+The series metadata, and long data frame of original, seasonally adjusted
 and trend series, for a single data item description
 }
 \description{

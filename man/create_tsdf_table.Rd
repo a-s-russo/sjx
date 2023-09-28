@@ -8,11 +8,11 @@ estimates for all data item descriptions}
 create_tsdf_table(series)
 }
 \arguments{
-\item{series}{list returned from \code{download_ts} containing series data and
+\item{series}{The list returned from \code{download_ts} containing series data and
 metadata}
 }
 \value{
-series metadata, and long data frame of original, seasonally adjusted
+The series metadata, and long data frame of original, seasonally adjusted
 and trend series, for all data item descriptions
 }
 \description{
@@ -26,8 +26,9 @@ estimates from the ABS, X-13ARIMA-SEATS, and JDemetra+ (where available)
 }
 }
 \details{
-Requires the data output from \code{download_ts}. NULL values appear in place of
-non-existent series in the list returned.
+Requires the data output from \code{download_ts}. If the ABS seasonally adjusted
+and/or trend estimates are not published, then they will not exist in the
+long data frames (rather than assume NULL values, for instance).
 }
 \examples{
 \dontrun{

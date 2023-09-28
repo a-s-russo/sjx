@@ -7,10 +7,10 @@
 download_ts(url)
 }
 \arguments{
-\item{url}{download link to the data}
+\item{url}{The download link to the data}
 }
 \value{
-series data and metadata
+The series data and metadata
 }
 \description{
 \code{download_ts} downloads the time series data corresponding to a table of an
