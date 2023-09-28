@@ -968,7 +968,7 @@ create_tsdf_table <- function(series) {
 #' @param dataItem The data item description for which results are to be returned
 #' 
 #' @importFrom ggplot2 aes element_text geom_line ggplot labs margin
-#' scale_color_discrete scale_y_continuous theme xlab ylab
+#' scale_color_discrete scale_y_continuous theme xlab xlim ylab
 #' @importFrom ggtext element_textbox_simple
 #' @importFrom lubridate year
 #' @importFrom rlang .data
@@ -1008,9 +1008,13 @@ create_tsplot_comp <- function(series, dataItem) {
   series_description <- dataItem
   units <- as.character(unique(dataItem_df$metadata[, "unit"]))
   
-  # Extract min and max values for vertical axis to ensure same scale across seasonally adjusted and trend plots
-  y_min <- min(dataItem_df$dataframe$value, na.rm = TRUE)
-  y_max <- max(dataItem_df$dataframe$value, na.rm = TRUE)
+  # Extract min and max values for axes to ensure same scale across seasonally adjusted and trend plots
+  x_min <- min(dataItem_df$dataframe$period)
+  x_max <- max(dataItem_df$dataframe$period)
+  y_min <-
+    min(dataItem_df$dataframe$value, na.rm = TRUE) # Might be NAs due to suppressed or missing values
+  y_max <-
+    max(dataItem_df$dataframe$value, na.rm = TRUE) # Might be NAs due to suppressed or missing values
   
   # Initialise empty list
   results <- list("seas" = NULL, "tren" = NULL)
@@ -1060,19 +1064,15 @@ create_tsplot_comp <- function(series, dataItem) {
       )
     
     # Extract legend labels for plotting purposes
-    if (type == "seas") {
-      if ("Seasonally Adjusted" %in% dataItem_df$metadata$series_type)
-        labels <- c("ABS", "X13", "RJD")
-      else
-        labels <-
-          c("X13", "RJD") # Series might not be published in ABS data
-    }
-    if (type == "tren") {
-      if ("Trend" %in% dataItem_df$metadata$series_type)
-        labels <- c("ABS", "X13", "RJD")
-      else
-        labels <-
-          c("X13", "RJD") # Series might not be published in ABS data
+    series_to_graph <- unique(as.character(plot_data$method))
+    if (length(series_to_graph) == 3) {
+      labels <- c("ABS", "X13", "RJD")
+    } else if (length(series_to_graph) == 2) {
+      label1 <- substr(series_to_graph[1], 0, 3)
+      label2 <- substr(series_to_graph[2], 0, 3)
+      labels <- c(label1, label2)
+    } else {
+      labels <- substr(series_to_graph, 0, 3)
     }
     
     # Generate plot object
@@ -1102,6 +1102,7 @@ create_tsplot_comp <- function(series, dataItem) {
       ) + # 'element_textbox_simple' automatically wraps long titles
       xlab(paste0("\nABS original series span: ", timespan)) +
       ylab("") +
+      xlim(x_min, x_max) +
       scale_color_discrete(name = "Method", labels = labels) +
       scale_y_continuous(limits = c(y_min, y_max),
                          labels = scales::comma)
