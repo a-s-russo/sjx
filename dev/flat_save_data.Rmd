@@ -141,7 +141,14 @@ download_ts <- function(url) {
         ifelse(.data$freq == "Month", 12, NA)
       )
     ) |>
-    select(-c("series_start", "series_end", "freq")) # Drop start and end variables since these do not always exclude periods with suppressed or missing observations
+    select(-c(
+      "series_start",
+      "series_end",
+      "freq",
+      "no_obs",
+      "collection_month",
+      "data_type"
+    )) # Drop start and end variables since these do not always exclude periods with suppressed or missing observations
   
   # Check that series are either monthly or quarterly
   freq_num <- unique(series_metadata$freq_num)
@@ -355,6 +362,119 @@ download_ts <- function(url) {
 }
 ```
 
+```{r function-check_series}
+#' @title
+#' Check if a series object is in the expected format
+#' 
+#' @description
+#' `check_series` checks if an object conforms to the format as per the list
+#' returned from `download_ts` containing series data and metadata.
+#' 
+#' @details
+#' An error is thrown if the object does not conform to the required format.
+#' Otherwise the function returns nothing.
+#' 
+#' @param series The object to be checked
+#' 
+#' @importFrom lubridate is.Date
+#' 
+#' @examples
+#' \dontrun{
+#' # Construct URL to download ABS data
+#' ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
+#' pub <- "employment-and-unemployment/labour-force-australia/" # Publication
+#' ref <- "jul-2023/" # Reference period
+#' cat <- "620200" # Catalogue number
+#' tab <- "1" # Table number
+#' ext <- ".xlsx" # File extension
+#' URL <- paste0(ABS, pub, ref, cat, tab, ext)
+#'
+#' # Run function
+#' emp <- download_ts(URL)
+#' check_series(emp)
+#' }
+#' 
+#' @export
+check_series <- function(series) {
+  # Check series list
+  stopifnot("`series` object is not a list" = is.list(series) == TRUE)
+  stopifnot("Series data and/or metadata not found" = all(c("data", "meta") %in% names(series)))
+  stopifnot(
+    "Series data and/or metadata not of the expected class" = is.data.frame(series$data) == TRUE &
+      is.data.frame(series$meta) == TRUE
+  )
+  
+  # Check series data
+  data_error <- FALSE
+  if (any(duplicated(colnames(series$data))))
+    data_error <- TRUE
+  if (!("period" %in% names(series$data)))
+    data_error <- TRUE
+  if (is.Date(series$data$period) == FALSE)
+    data_error <- TRUE
+  data_vars <- setdiff(names(series$data), "period")
+  if (is.null(data_vars))
+    data_error <- TRUE
+  if (!(all(grepl(
+    "^[A-Z]{1}[0-9]{7,8}[A-Z]{1}$", data_vars
+  ))))
+    data_error <- TRUE
+  if (!(all(lapply(series$data[,!(names(series$data) == "period")], class) == "numeric")))
+    data_error <- TRUE
+  stopifnot("Not all series data variables exist, are unique, and/or are in the right format" = data_error == FALSE)
+  
+  # Check series metadata
+  meta_error <- FALSE
+  if (any(duplicated(colnames(series$meta))))
+    meta_error <- TRUE
+  if (!("data_item_description" %in% colnames(series$meta)) |
+      is.character(series$meta$data_item_description) == FALSE)
+    meta_error <- TRUE
+  if (!("end" %in% colnames(series$meta)) |
+      is.Date(series$meta$end) == FALSE)
+    meta_error <- TRUE
+  if (!("end_period" %in% colnames(series$meta)) |
+      is.Date(series$meta$end_period) == FALSE)
+    meta_error <- TRUE
+  if (!("end_year" %in% colnames(series$meta)) |
+      is.Date(series$meta$end_year) == FALSE)
+    meta_error <- TRUE
+  if (!("freq_name" %in% colnames(series$meta)) |
+      is.character(series$meta$freq_name) == FALSE)
+    meta_error <- TRUE
+  if (!("freq_num" %in% colnames(series$meta)) |
+      is.numeric(series$meta$freq_num) == FALSE)
+    meta_error <- TRUE
+  if (!("publication" %in% colnames(series$meta)) |
+      is.character(series$meta$publication) == FALSE)
+    meta_error <- TRUE
+  if (!("series_id" %in% colnames(series$meta)) |
+      is.character(series$meta$series_id) == FALSE)
+    meta_error <- TRUE
+  if (!("series_type" %in% colnames(series$meta)) |
+      is.character(series$meta$series_type) == FALSE)
+    meta_error <- TRUE
+  if (!("start" %in% colnames(series$meta)) |
+      is.Date(series$meta$start) == FALSE)
+    meta_error <- TRUE
+  if (!("start_period" %in% colnames(series$meta)) |
+      is.Date(series$meta$start_period) == FALSE)
+    meta_error <- TRUE
+  if (!("start_year" %in% colnames(series$meta)) |
+      is.Date(series$meta$start_year) == FALSE)
+    meta_error <- TRUE
+  if (!("table" %in% colnames(series$meta)) |
+      is.character(series$meta$table) == FALSE)
+    meta_error <- TRUE
+  if (!("unit" %in% colnames(series$meta)) |
+      is.character(series$meta$unit) == FALSE)
+    meta_error <- TRUE
+  stopifnot(
+    "Not all series metadata variables exist, are unique, and/or are in the right format" = data_error == FALSE
+  )
+}
+```
+
 ```{r function-get_seriesIDs}
 #' @title
 #' Get all series IDs from series metadata
@@ -392,6 +512,9 @@ download_ts <- function(url) {
 #' 
 #' @export
 get_seriesIDs <- function(series) {
+  # Check for valid series object
+  check_series(series)
+  
   return(unique(series$meta$series_id))
 }
 ```
@@ -433,6 +556,9 @@ get_seriesIDs <- function(series) {
 #' 
 #' @export
 get_dataItems <- function(series) {
+  # Check for valid series object
+  check_series(series)
+  
   return(unique(series$meta$data_item_description))
 }
 ```
@@ -555,6 +681,9 @@ run_RJD <- function(ts) {
 #' 
 #' @export
 create_ts <- function(series, seriesID) {
+  # Check for valid series object
+  check_series(series)
+  
   # Return NULL object if series ID is missing
   if (length(seriesID) == 0)
     return(NULL)
@@ -635,6 +764,9 @@ create_ts <- function(series, seriesID) {
 #' 
 #' @export
 create_ts_comp <- function(series, dataItem) {
+  # Check for valid series object
+  check_series(series)
+  
   # Check for valid data item description
   dataItems <- get_dataItems(series)
   stopifnot("Data item description does not exist" = dataItem %in% dataItems)
@@ -737,6 +869,9 @@ create_ts_comp <- function(series, dataItem) {
 #' 
 #' @export
 create_ts_table <- function(series) {
+  # Check for valid series object
+  check_series(series)
+  
   # Extract series metadata
   meta <- series$meta
   
@@ -823,6 +958,9 @@ create_ts_table <- function(series) {
 #' 
 #' @export
 create_tsdf_comp <- function(series, dataItem) {
+  # Check for valid series object
+  check_series(series)
+  
   # Check for valid data item description
   dataItems <- get_dataItems(series)
   stopifnot("Data item description does not exist" = dataItem %in% dataItems)
@@ -973,6 +1111,9 @@ create_tsdf_comp <- function(series, dataItem) {
 #' 
 #' @export
 create_tsdf_table <- function(series) {
+  # Check for valid series object
+  check_series(series)
+  
   # Extract series metadata
   meta <- series$meta
   
@@ -1075,6 +1216,9 @@ create_tsdf_table <- function(series) {
 #' 
 #' @export
 create_tsplot_comp <- function(series, dataItem) {
+  # Check for valid series object
+  check_series(series)
+  
   # Check for valid data item description
   dataItems <- get_dataItems(series)
   stopifnot("Data item description does not exist" = dataItem %in% dataItems)
@@ -1163,15 +1307,13 @@ create_tsplot_comp <- function(series, dataItem) {
       )
     ) +
       geom_line(na.rm = TRUE) +
-      labs(
-        title = str_wrap(dataItem),
-        subtitle = paste0(
-          ifelse(type == "seas", "Seasonally Adjusted", "Trend"),
-          " (",
-          units,
-          ")"
-        )
-      ) +
+      labs(title = str_wrap(dataItem),
+           subtitle = paste0(
+             ifelse(type == "seas", "Seasonally Adjusted", "Trend"),
+             " (",
+             units,
+             ")"
+           )) +
       theme(
         plot.title = element_text(hjust = 0.5, margin = margin(10, 0, 10, 0)),
         plot.subtitle = element_text(hjust = 0.5)
@@ -1249,6 +1391,9 @@ create_tsplot_comp <- function(series, dataItem) {
 #' 
 #' @export
 create_tsplot_table <- function(series) {
+  # Check for valid series object
+  check_series(series)
+  
   # Extract series metadata
   meta <- series$meta
   

@@ -80,7 +80,7 @@ You can install the development version of `timeseriescomparison` from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("a-s-russo/time-series-comparison")
+devtools::install_github("a-s-russo/time-series-comparison@fusen")
 ```
 
 ## Example
@@ -105,7 +105,5 @@ URL <- paste0(ABS, pub, ref, cat, tab, ext)
 emp <- download_ts(URL)
 
 # Plot the seasonally adjusted series
-create_tsplot_comp(emp, "Employed total ;  Persons ;")$seas
+#create_tsplot_comp(emp, "Employed total ;  Persons ;")$seas
 ```
-
-<img src="man/figures/README-example-1.png" width="100%" height="100%" style="display: block; margin: auto;" />
