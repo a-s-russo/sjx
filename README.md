@@ -9,7 +9,7 @@ and remove seasonal and calendar-related impacts from a time series.
 Trending is an analytical method to estimate the long-term, underlying
 direction of a time series.
 
-The `timeseriescomparions` package enables the comparison of the
+The `timeseriescomparison` package enables the comparison of the
 seasonal adjustment and trending methods produced by the following three
 programs:
 
@@ -47,10 +47,11 @@ publications containing original time series. The relevant data are
 contained in various tables as Excel spreadsheets under the ‘Data
 downloads’ section of the desired publication.
 
-An example is *Table 1. Inventories, chain volume measures* in the March
-2023 publication of ‘Business Indicators, Australia’ available at:
+An example is *Table 1. Inventories, chain volume measures* in the June
+quarter 2023 publication of ‘Business Indicators, Australia’ available
+at:
 
-<https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676001.xlsx>
+<https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/jun-2023/5676001.xlsx>
 
 Each spreadsheet file contains the following sheets/tabs (any others are
 ignored):
@@ -79,7 +80,7 @@ You can install the development version of `timeseriescomparison` from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("a-s-russo/time-series-comparison@fusen")
+devtools::install_github("a-s-russo/time-series-comparison")
 ```
 
 ## Example

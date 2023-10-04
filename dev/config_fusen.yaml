@@ -16,10 +16,10 @@ flat_save_data.Rmd:
   state: active
   R: R/download_ts.R
   tests: []
-  vignettes: vignettes/dev-save_data.Rmd
+  vignettes: vignettes/dev_save_data.Rmd
   inflate:
     flat_file: dev/flat_save_data.Rmd
-    vignette_name: dev-save_data
+    vignette_name: dev_save_data
     open_vignette: true
     check: true
     document: true

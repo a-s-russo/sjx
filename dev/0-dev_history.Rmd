@@ -78,7 +78,7 @@ Start by inflating `dev/flat_save_data.Rmd`:
 # Run but keep eval=FALSE to avoid infinite loop
 # Execute in the console directly
 fusen::inflate(flat_file = "dev/flat_save_data.Rmd",
-               vignette_name = "dev-save_data",
+               vignette_name = "dev_save_data",
                overwrite = T)
 
 ```
@@ -87,10 +87,13 @@ fusen::inflate(flat_file = "dev/flat_save_data.Rmd",
 
 ```{r}
 local({
-  knitr::knit("vignettes/dev-save_data.Rmd", output = tempfile())
-  usethis::use_data(BIA_Mar23_Table3, overwrite = TRUE)
-  usethis::use_data(BIA_Mar23_Table6, overwrite = TRUE)
-  usethis::use_data(LFA_Jul23_Table1, overwrite = TRUE)
+  knitr::knit("vignettes/dev_save_data.Rmd", output = tempfile())
+  usethis::use_data(CPI, overwrite = TRUE)
+  usethis::use_data(employment, overwrite = TRUE)
+  usethis::use_data(GDP, overwrite = TRUE)
+  usethis::use_data(inventories, overwrite = TRUE)
+  usethis::use_data(retail, overwrite = TRUE)
+  usethis::use_data(sales, overwrite = TRUE)
 })
 
 ```

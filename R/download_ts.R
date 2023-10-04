@@ -1006,10 +1006,9 @@ create_tsdf_table <- function(series) {
 #' 
 #' @importFrom ggplot2 aes element_text geom_line ggplot labs margin
 #' scale_color_discrete scale_y_continuous theme xlab xlim ylab
-#' @importFrom ggtext element_textbox_simple
 #' @importFrom lubridate year
 #' @importFrom rlang .data
-#' @importFrom stringr str_squish
+#' @importFrom stringr str_squish str_wrap
 #' 
 #' @return The ggplot objects for the seasonally adjusted and trend series for a
 #' single data item description
@@ -1042,8 +1041,7 @@ create_tsplot_comp <- function(series, dataItem) {
   # Extract time series data frame for given data item description
   dataItem_df <- create_tsdf_comp(series, dataItem)
   
-  # Extract relevant information for plotting purposes
-  series_description <- dataItem
+  # Extract units for plotting purposes
   units <- as.character(unique(dataItem_df$metadata[, "unit"]))
   
   # Extract min and max values for axes to ensure same scale across seasonally adjusted and trend plots
@@ -1125,8 +1123,7 @@ create_tsplot_comp <- function(series, dataItem) {
     ) +
       geom_line(na.rm = TRUE) +
       labs(
-        # Use 'deparse' since some data item descriptions begin with '>' which gets confused as an HTML-like tag in ggtext
-        title = deparse(series_description),
+        title = str_wrap(dataItem),
         subtitle = paste0(
           ifelse(type == "seas", "Seasonally Adjusted", "Trend"),
           " (",
@@ -1135,9 +1132,9 @@ create_tsplot_comp <- function(series, dataItem) {
         )
       ) +
       theme(
-        plot.title = element_textbox_simple(halign = 0.5, margin = margin(10, 0, 10, 0)),
+        plot.title = element_text(hjust = 0.5, margin = margin(10, 0, 10, 0)),
         plot.subtitle = element_text(hjust = 0.5)
-      ) + # 'element_textbox_simple' automatically wraps long titles
+      ) +
       xlab(paste0("\nABS original series span: ", timespan)) +
       ylab("") +
       xlim(x_min, x_max) +

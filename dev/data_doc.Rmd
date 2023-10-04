@@ -1,10 +1,10 @@
 ## Included datasets
 
-```{r function-BIA_Mar23_Table3, eval=FALSE}
-#' Business Indicators Australia, March 2023, Table 3
+```{r function-CPI, eval=FALSE}
+#' Consumer Price Index Australia, June Quarter 2023, Tables 1 and 2
 #' 
-#' A dataset containing quarterly estimates of private sector inventories in
-#' current prices collected by the
+#' A dataset containing quarterly consumer price index numbers and percentage
+#' changes collected by the
 #' [Australian Bureau of Statistics](https://www.abs.gov.au/).
 #'
 #' @format A list containing the downloaded and cleaned series data and metadata
@@ -13,28 +13,11 @@
 #'   series}
 #'   \item{meta}{A tibble containing the associated metadata for each series}
 #' }
-#' @source <https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023#data-downloads>
-"BIA_Mar23_Table3"
+#' @source <https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation/consumer-price-index-australia/jun-quarter-2023#data-downloads>
+"CPI"
 ```
 
-```{r function-BIA_Mar23_Table6, eval=FALSE}
-#' Business Indicators Australia, March 2023, Table 6
-#' 
-#' A dataset containing quarterly estimates of private sector income from sales
-#' of goods and services in current prices collected by the
-#' [Australian Bureau of Statistics](https://www.abs.gov.au/).
-#'
-#' @format A list containing the downloaded and cleaned series data and metadata
-#' \describe{
-#'   \item{data}{A tibble containing the original, seasonally adjusted and trend
-#'   series}
-#'   \item{meta}{A tibble containing the associated metadata for each series}
-#' }
-#' @source <https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023#data-downloads>
-"BIA_Mar23_Table6"
-```
-
-```{r function-LFA_Jul23_Table1, eval=FALSE}
+```{r function-employment, eval=FALSE}
 #' Labour Force Australia, July 2023, Table 1
 #' 
 #' A dataset containing monthly estimates of labour force status by sex
@@ -46,6 +29,73 @@
 #'   series}
 #'   \item{meta}{A tibble containing the associated metadata for each series}
 #' }
-#' @source <https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/jul-2023#data-downloadss>
-"LFA_Jul23_Table1"
+#' @source <https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/jul-2023#data-downloads>
+"employment"
+```
+
+```{r function-GDP, eval=FALSE}
+#' Australian National Accounts: National Income, Expenditure and Product, June
+#' Quarter 2023, Table 1
+#' 
+#' A dataset containing quarterly key national accounts aggregates collected by
+#' the [Australian Bureau of Statistics](https://www.abs.gov.au/).
+#'
+#' @format A list containing the downloaded and cleaned series data and metadata
+#' \describe{
+#'   \item{data}{A tibble containing the original, seasonally adjusted and trend
+#'   series}
+#'   \item{meta}{A tibble containing the associated metadata for each series}
+#' }
+#' @source <https://www.abs.gov.au/statistics/economy/national-accounts/australian-national-accounts-national-income-expenditure-and-product/jun-2023#data-downloads>
+"GDP"
+```
+
+```{r function-inventories, eval=FALSE}
+#' Business Indicators Australia, June Quarter 2023, Table 3
+#' 
+#' A dataset containing quarterly estimates of private sector inventories in
+#' current prices collected by the
+#' [Australian Bureau of Statistics](https://www.abs.gov.au/).
+#'
+#' @format A list containing the downloaded and cleaned series data and metadata
+#' \describe{
+#'   \item{data}{A tibble containing the original, seasonally adjusted and trend
+#'   series}
+#'   \item{meta}{A tibble containing the associated metadata for each series}
+#' }
+#' @source <https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/jun-2023#data-downloads>
+"inventories"
+```
+
+```{r function-retail, eval=FALSE}
+#' Retail Trade Australia, July 2023, Table 1
+#' 
+#' A dataset containing monthly estimates of retail turnover by industry group
+#' collected by the [Australian Bureau of Statistics](https://www.abs.gov.au/).
+#'
+#' @format A list containing the downloaded and cleaned series data and metadata
+#' \describe{
+#'   \item{data}{A tibble containing the original, seasonally adjusted and trend
+#'   series}
+#'   \item{meta}{A tibble containing the associated metadata for each series}
+#' }
+#' @source <https://www.abs.gov.au/statistics/industry/retail-and-wholesale-trade/retail-trade-australia/jul-2023#data-downloads>
+"retail"
+```
+
+```{r function-sales, eval=FALSE}
+#' Business Indicators Australia, June Quarter 2023, Table 6
+#' 
+#' A dataset containing quarterly estimates of private sector income from sales
+#' of goods and services in current prices collected by the
+#' [Australian Bureau of Statistics](https://www.abs.gov.au/).
+#'
+#' @format A list containing the downloaded and cleaned series data and metadata
+#' \describe{
+#'   \item{data}{A tibble containing the original, seasonally adjusted and trend
+#'   series}
+#'   \item{meta}{A tibble containing the associated metadata for each series}
+#' }
+#' @source <https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/jun-2023#data-downloads>
+"sales"
 ```

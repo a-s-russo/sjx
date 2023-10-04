@@ -1047,10 +1047,9 @@ create_tsdf_table <- function(series) {
 #' 
 #' @importFrom ggplot2 aes element_text geom_line ggplot labs margin
 #' scale_color_discrete scale_y_continuous theme xlab xlim ylab
-#' @importFrom ggtext element_textbox_simple
 #' @importFrom lubridate year
 #' @importFrom rlang .data
-#' @importFrom stringr str_squish
+#' @importFrom stringr str_squish str_wrap
 #' 
 #' @return The ggplot objects for the seasonally adjusted and trend series for a
 #' single data item description
@@ -1083,8 +1082,7 @@ create_tsplot_comp <- function(series, dataItem) {
   # Extract time series data frame for given data item description
   dataItem_df <- create_tsdf_comp(series, dataItem)
   
-  # Extract relevant information for plotting purposes
-  series_description <- dataItem
+  # Extract units for plotting purposes
   units <- as.character(unique(dataItem_df$metadata[, "unit"]))
   
   # Extract min and max values for axes to ensure same scale across seasonally adjusted and trend plots
@@ -1166,8 +1164,7 @@ create_tsplot_comp <- function(series, dataItem) {
     ) +
       geom_line(na.rm = TRUE) +
       labs(
-        # Use 'deparse' since some data item descriptions begin with '>' which gets confused as an HTML-like tag in ggtext
-        title = deparse(series_description),
+        title = str_wrap(dataItem),
         subtitle = paste0(
           ifelse(type == "seas", "Seasonally Adjusted", "Trend"),
           " (",
@@ -1176,9 +1173,9 @@ create_tsplot_comp <- function(series, dataItem) {
         )
       ) +
       theme(
-        plot.title = element_textbox_simple(halign = 0.5, margin = margin(10, 0, 10, 0)),
+        plot.title = element_text(hjust = 0.5, margin = margin(10, 0, 10, 0)),
         plot.subtitle = element_text(hjust = 0.5)
-      ) + # 'element_textbox_simple' automatically wraps long titles
+      ) +
       xlab(paste0("\nABS original series span: ", timespan)) +
       ylab("") +
       xlim(x_min, x_max) +
@@ -1288,7 +1285,10 @@ create_tsplot_table <- function(series) {
 ```
 
 ```{r save-datasets, echo=FALSE, eval=FALSE, include=FALSE}
-BIA_Mar23_Table3 <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676003.xlsx")
-BIA_Mar23_Table6 <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/mar-2023/5676006.xlsx")
-LFA_Jul23_Table1 <- download_ts("https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/jul-2023/6202001.xlsx")
+CPI <- download_ts("https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation/consumer-price-index-australia/jun-quarter-2023/640101.xlsx")
+employment <- download_ts("https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia/jul-2023/6202001.xlsx")
+GDP <- download_ts("https://www.abs.gov.au/statistics/economy/national-accounts/australian-national-accounts-national-income-expenditure-and-product/jun-2023/5206001_Key_Aggregates.xlsx")
+inventories <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/jun-2023/5676003.xlsx")
+retail <- download_ts("https://www.abs.gov.au/statistics/industry/retail-and-wholesale-trade/retail-trade-australia/jul-2023/850101.xlsx")
+sales <- download_ts("https://www.abs.gov.au/statistics/economy/business-indicators/business-indicators-australia/jun-2023/5676006.xlsx")
 ```
