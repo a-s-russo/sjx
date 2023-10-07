@@ -1095,7 +1095,7 @@ create_tsdf_table <- function(series) {
 #' @param dataItem The data item description for which results are to be returned
 #' 
 #' @importFrom ggplot2 aes element_text geom_line ggplot labs margin
-#' scale_color_discrete scale_y_continuous theme xlab xlim ylab
+#' scale_color_manual scale_y_continuous theme xlab xlim ylab
 #' @importFrom lubridate year
 #' @importFrom rlang .data
 #' @importFrom stringr str_squish str_wrap
@@ -1181,16 +1181,27 @@ create_tsplot_comp <- function(series, dataItem) {
         )
       )
     
-    # Extract legend labels for plotting purposes
+    # Extract legend labels and line colours for plotting purposes
     series_to_graph <- unique(as.character(plot_data$method))
     if (length(series_to_graph) == 3) {
       labels <- c("ABS", "RJD", "X13")
+      colours <- c("#F8766D", "#00BA38", "#619CFF")
     } else if (length(series_to_graph) == 2) {
       label1 <- substr(series_to_graph[1], 0, 3)
       label2 <- substr(series_to_graph[2], 0, 3)
       labels <- c(label1, label2)
+      if (label1 == "ABS") colour1 <- "#F8766D"
+      if (label1 == "RJD") colour1 <- "#00BA38"
+      if (label1 == "X13") colour1 <- "#619CFF"
+      if (label2 == "ABS") colour2 <- "#F8766D"
+      if (label2 == "RJD") colour2 <- "#00BA38"
+      if (label2 == "X13") colour2 <- "#619CFF"
+      colours <- c(colour1, colour2)
     } else {
       labels <- substr(series_to_graph, 0, 3)
+      if (labels == "ABS") colours <- "#F8766D"
+      if (labels == "RJD") colours <- "#00BA38"
+      if (labels == "X13") colours <- "#619CFF"
     }
     
     # Generate plot object
@@ -1218,7 +1229,7 @@ create_tsplot_comp <- function(series, dataItem) {
       xlab(paste0("\nABS original series span: ", timespan)) +
       ylab("") +
       xlim(x_min, x_max) +
-      scale_color_discrete(name = "Method", labels = labels) +
+      scale_color_manual(name = "Method", labels = labels, values = colours) +
       scale_y_continuous(limits = c(y_min, y_max),
                          labels = scales::comma)
     
