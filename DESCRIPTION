@@ -1,4 +1,4 @@
-Package: timeseriescomparison
+Package: sjx
 Title: Comparison Of Seasonal Adjustment Methods On ABS Data
 Version: 0.1
 Authors@R: 
@@ -6,7 +6,7 @@ Authors@R:
 Description: This package contains functions to download and clean time
     series data from the Australian Bureau of Statistics (ABS) and compare
     the outputs from the seasonal adjustment and trend methods of
-    X-13ARIMA-SEATS and JDemetra+ against those published by the ABS
+    JDemetra+ and X-13ARIMA-SEATS against those published by the ABS
     (which uses SEASABS).
 License: GPL (>= 3)
 Depends: 

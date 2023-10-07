@@ -18,7 +18,7 @@ fusen::fill_description(
   fields = list(
     Title = "Comparison of seasonal adjustment methods on ABS data",
     Version = "0.1",
-    Description = "This package contains functions to download and clean time series data from the Australian Bureau of Statistics (ABS) and compare the outputs from the seasonal adjustment and trend methods of X-13ARIMA-SEATS and JDemetra+ against those published by the ABS (which uses SEASABS).",
+    Description = "This package contains functions to download and clean time series data from the Australian Bureau of Statistics (ABS) and compare the outputs from the seasonal adjustment and trend methods of JDemetra+ and X-13ARIMA-SEATS against those published by the ABS (which uses SEASABS).",
     `Authors@R` = c(
       person("A", "Russo", email = "a.s.russo@outlook.com", role = c("aut", "cre"))
     )
