@@ -29,7 +29,7 @@ data("inventories")
 # Create original series
 inventories_mining_orig <- create_ts(inventories, "A3531252X")
 
-# Generate seasonally adjusted series
-inventories_mining_seas <- run_RJD(inventories_mining_orig)
+# Generate seasonally adjusted and trend series
+inventories_mining_seas_tren <- run_RJD(inventories_mining_orig)
 
 }

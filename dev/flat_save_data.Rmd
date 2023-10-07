@@ -565,8 +565,8 @@ get_dataItems <- function(series) {
 #' # Create original series
 #' inventories_mining_orig <- create_ts(inventories, "A3531252X")
 #' 
-#' # Generate seasonally adjusted series
-#' inventories_mining_seas <- run_X13(inventories_mining_orig)
+#' # Generate seasonally adjusted and trend series
+#' inventories_mining_seas_tren <- run_X13(inventories_mining_orig)
 #' 
 #' @export
 run_X13 <- function(ts) {
@@ -613,8 +613,8 @@ run_X13 <- function(ts) {
 #' # Create original series
 #' inventories_mining_orig <- create_ts(inventories, "A3531252X")
 #' 
-#' # Generate seasonally adjusted series
-#' inventories_mining_seas <- run_RJD(inventories_mining_orig)
+#' # Generate seasonally adjusted and trend series
+#' inventories_mining_seas_tren <- run_RJD(inventories_mining_orig)
 #' 
 #' @export
 run_RJD <- function(ts) {
