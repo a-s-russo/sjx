@@ -56,18 +56,16 @@ in the middle as described above, then its corresponding seasonally adjusted
 and trend series will also be removed.)
 }
 \examples{
-\dontrun{
 # Construct a URL to download ABS data
 ABS <- "https://www.abs.gov.au/statistics/economy/" # ABS website (for economic statistics)
 pub <- "business-indicators/business-indicators-australia/" # Publication
-ref <- "mar-2023/" # Reference period
+ref <- "jun-2023/" # Reference period
 cat <- "567600" # Catalogue number
 tab <- "3" # Table number
 ext <- ".xlsx" # File extension
 URL <- paste0(ABS, pub, ref, cat, tab, ext)
 
 # Download the series data and metadata
-sales <- download_ts(URL)
-}
+inventories <- download_ts(URL)
 
 }

@@ -50,22 +50,11 @@ the \code{download_ts} function)
 }
 }
 \examples{
-\dontrun{
-# Construct URL to download ABS data
-ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-ref <- "jul-2023/" # Reference period
-cat <- "620200" # Catalogue number
-tab <- "1" # Table number
-ext <- ".xlsx" # File extension
-URL <- paste0(ABS, pub, ref, cat, tab, ext)
+# Load data
+data("inventories")
 
-# Run function
-emp <- download_ts(URL)
-create_tsplot_comp(emp, "Employed total ;  Persons ;")
-
-# Plot still produced even when ABS seasonally adjusted and/or trend non-existent:
-create_tsplot_comp(emp, "Civilian population aged 15 years and over ;  Persons ;")
-}
+# Create plots for a given data item description
+item <- "Inventories ;  Total (State) ;  Mining ;  Current Price ;  TOTAL (SCP_SCOPE) ;"
+inventories_mining_plots <- create_tsplot_comp(inventories, item)
 
 }

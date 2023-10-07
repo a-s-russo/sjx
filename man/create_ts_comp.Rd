@@ -34,19 +34,11 @@ and/or trend estimates are not published, then they will not exist in the
 list (rather than assume NULL values, for instance).
 }
 \examples{
-\dontrun{
-# Construct URL to download ABS data
-ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-ref <- "jul-2023/" # Reference period
-cat <- "620200" # Catalogue number
-tab <- "1" # Table number
-ext <- ".xlsx" # File extension
-URL <- paste0(ABS, pub, ref, cat, tab, ext)
+# Load data
+data("inventories")
 
-# Run function
-emp <- download_ts(URL)
-emp_total <- create_ts_comp(emp, "Employed total ;  Persons ;")
-}
+# Create time series objects for a given data item description
+item <- "Inventories ;  Total (State) ;  Mining ;  Current Price ;  TOTAL (SCP_SCOPE) ;"
+inventories_ts_mining <- create_ts_comp(inventories, item)
 
 }

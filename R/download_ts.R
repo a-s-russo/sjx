@@ -61,19 +61,17 @@
 #' @return The series data and metadata
 #' 
 #' @examples
-#' \dontrun{
 #' # Construct a URL to download ABS data
 #' ABS <- "https://www.abs.gov.au/statistics/economy/" # ABS website (for economic statistics)
 #' pub <- "business-indicators/business-indicators-australia/" # Publication
-#' ref <- "mar-2023/" # Reference period
+#' ref <- "jun-2023/" # Reference period
 #' cat <- "567600" # Catalogue number
 #' tab <- "3" # Table number
 #' ext <- ".xlsx" # File extension
 #' URL <- paste0(ABS, pub, ref, cat, tab, ext)
 #'
 #' # Download the series data and metadata
-#' sales <- download_ts(URL)
-#' }
+#' inventories <- download_ts(URL)
 #'
 #' @export
 download_ts <- function(url) {
@@ -349,27 +347,21 @@ download_ts <- function(url) {
 #' 
 #' @details
 #' An error is thrown if the object does not conform to the required format.
-#' Otherwise the function returns nothing.
+#' Otherwise the function returns nothing. Only limited error checking is
+#' undertaken, such as checking for appropriate variable names and types.
+#' Logical checks for aspects such as consistency within or between the series
+#' data and metadata are not performed.
 #' 
 #' @param series The object to be checked
 #' 
 #' @importFrom lubridate is.Date
 #' 
 #' @examples
-#' \dontrun{
-#' # Construct URL to download ABS data
-#' ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-#' pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-#' ref <- "jul-2023/" # Reference period
-#' cat <- "620200" # Catalogue number
-#' tab <- "1" # Table number
-#' ext <- ".xlsx" # File extension
-#' URL <- paste0(ABS, pub, ref, cat, tab, ext)
+#' # Load data
+#' data("inventories")
 #'
-#' # Run function
-#' emp <- download_ts(URL)
-#' check_series(emp)
-#' }
+#' # Check the series object for validity (nothing happens if valid)
+#' check_series(inventories)
 #'
 #' @export
 check_series <- function(series) {
@@ -411,10 +403,10 @@ check_series <- function(series) {
       is.Date(series$meta$end) == FALSE)
     meta_error <- TRUE
   if (!("end_period" %in% colnames(series$meta)) |
-      is.Date(series$meta$end_period) == FALSE)
+      is.numeric(series$meta$end_period) == FALSE)
     meta_error <- TRUE
   if (!("end_year" %in% colnames(series$meta)) |
-      is.Date(series$meta$end_year) == FALSE)
+      is.numeric(series$meta$end_year) == FALSE)
     meta_error <- TRUE
   if (!("freq_name" %in% colnames(series$meta)) |
       is.character(series$meta$freq_name) == FALSE)
@@ -435,10 +427,10 @@ check_series <- function(series) {
       is.Date(series$meta$start) == FALSE)
     meta_error <- TRUE
   if (!("start_period" %in% colnames(series$meta)) |
-      is.Date(series$meta$start_period) == FALSE)
+      is.numeric(series$meta$start_period) == FALSE)
     meta_error <- TRUE
   if (!("start_year" %in% colnames(series$meta)) |
-      is.Date(series$meta$start_year) == FALSE)
+      is.numeric(series$meta$start_year) == FALSE)
     meta_error <- TRUE
   if (!("table" %in% colnames(series$meta)) |
       is.character(series$meta$table) == FALSE)
@@ -447,7 +439,7 @@ check_series <- function(series) {
       is.character(series$meta$unit) == FALSE)
     meta_error <- TRUE
   stopifnot(
-    "Not all series metadata variables exist, are unique, and/or are in the right format" = data_error == FALSE
+    "Not all series metadata variables exist, are unique, and/or are in the right format" = meta_error == FALSE
   )
 }
 
@@ -470,20 +462,11 @@ check_series <- function(series) {
 #' @return All series IDs in the metadata of a series
 #' 
 #' @examples
-#' \dontrun{
-#' # Construct URL to download ABS data
-#' ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-#' pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-#' ref <- "jul-2023/" # Reference period
-#' cat <- "620200" # Catalogue number
-#' tab <- "1" # Table number
-#' ext <- ".xlsx" # File extension
-#' URL <- paste0(ABS, pub, ref, cat, tab, ext)
+#' # Load data
+#' data("inventories")
 #'
-#' # Run function
-#' emp <- download_ts(URL)
-#' get_seriesIDs(emp)
-#' }
+#' # Extract all series IDs
+#' get_seriesIDs(inventories)
 #'
 #' @export
 get_seriesIDs <- function(series) {
@@ -512,20 +495,11 @@ get_seriesIDs <- function(series) {
 #' @return All data item descriptions in the metadata of a series
 #' 
 #' @examples
-#' \dontrun{
-#' # Construct URL to download ABS data
-#' ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-#' pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-#' ref <- "jul-2023/" # Reference period
-#' cat <- "620200" # Catalogue number
-#' tab <- "1" # Table number
-#' ext <- ".xlsx" # File extension
-#' URL <- paste0(ABS, pub, ref, cat, tab, ext)
+#' # Load data
+#' data("inventories")
 #'
-#' # Run function
-#' emp <- download_ts(URL)
-#' get_dataItems(emp)
-#' }
+#' # Extract all data item descriptions
+#' get_dataItems(inventories)
 #'
 #' @export
 get_dataItems <- function(series) {
@@ -554,7 +528,17 @@ get_dataItems <- function(series) {
 #' @importFrom stats is.ts
 #' 
 #' @return The seasonally adjusted and trend estimates generated by X-13ARIMA-SEATS
-
+#' 
+#' @examples
+#' # Load data
+#' data("inventories")
+#'
+#' # Create original series
+#' inventories_mining_orig <- create_ts(inventories, "A3531252X")
+#'
+#' # Generate seasonally adjusted series
+#' inventories_mining_seas <- run_X13(inventories_mining_orig)
+#'
 #' @export
 run_X13 <- function(ts) {
   stopifnot("Argument class is not a time series object" = is.ts(ts) == TRUE)
@@ -591,6 +575,16 @@ run_X13 <- function(ts) {
 #' 
 #' @return The seasonally adjusted and trend estimates generated by JDemetra+
 #' 
+#' @examples
+#' # Load data
+#' data("inventories")
+#'
+#' # Create original series
+#' inventories_mining_orig <- create_ts(inventories, "A3531252X")
+#'
+#' # Generate seasonally adjusted series
+#' inventories_mining_seas <- run_RJD(inventories_mining_orig)
+#'
 #' @export
 run_RJD <- function(ts) {
   stopifnot("Argument class is not a time series object" = is.ts(ts) == TRUE)
@@ -631,20 +625,11 @@ run_RJD <- function(ts) {
 #' @return A time series object for a single series
 #' 
 #' @examples
-#' \dontrun{
-#' # Construct URL to download ABS data
-#' ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-#' pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-#' ref <- "jul-2023/" # Reference period
-#' cat <- "620200" # Catalogue number
-#' tab <- "1" # Table number
-#' ext <- ".xlsx" # File extension
-#' URL <- paste0(ABS, pub, ref, cat, tab, ext)
+#' # Load data
+#' data("inventories")
 #'
-#' # Run function
-#' emp <- download_ts(URL)
-#' emp_total <- create_ts(emp, "A84423127L")
-#' }
+#' # Create a time series object for a given series ID
+#' inventories_mining_orig <- create_ts(inventories, "A3531252X")
 #'
 #' @export
 create_ts <- function(series, seriesID) {
@@ -712,20 +697,12 @@ create_ts <- function(series, seriesID) {
 #' for a single data item description
 #' 
 #' @examples
-#' \dontrun{
-#' # Construct URL to download ABS data
-#' ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-#' pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-#' ref <- "jul-2023/" # Reference period
-#' cat <- "620200" # Catalogue number
-#' tab <- "1" # Table number
-#' ext <- ".xlsx" # File extension
-#' URL <- paste0(ABS, pub, ref, cat, tab, ext)
+#' # Load data
+#' data("inventories")
 #'
-#' # Run function
-#' emp <- download_ts(URL)
-#' emp_total <- create_ts_comp(emp, "Employed total ;  Persons ;")
-#' }
+#' # Create time series objects for a given data item description
+#' item <- "Inventories ;  Total (State) ;  Mining ;  Current Price ;  TOTAL (SCP_SCOPE) ;"
+#' inventories_ts_mining <- create_ts_comp(inventories, item)
 #'
 #' @export
 create_ts_comp <- function(series, dataItem) {
@@ -815,20 +792,11 @@ create_ts_comp <- function(series, dataItem) {
 #' for all data item descriptions
 #' 
 #' @examples
-#' \dontrun{
-#' # Construct URL to download ABS data
-#' ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-#' pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-#' ref <- "jul-2023/" # Reference period
-#' cat <- "620200" # Catalogue number
-#' tab <- "1" # Table number
-#' ext <- ".xlsx" # File extension
-#' URL <- paste0(ABS, pub, ref, cat, tab, ext)
+#' # Load data
+#' data("inventories")
 #'
-#' # Run function
-#' emp <- download_ts(URL)
-#' emp_all <- create_ts_table(emp)
-#' }
+#' # Create time series objects for all data item descriptions
+#' inventories_ts_all <- create_ts_table(inventories)
 #'
 #' @export
 create_ts_table <- function(series) {
@@ -902,20 +870,12 @@ create_ts_table <- function(series) {
 #' and trend series, for a single data item description
 #' 
 #' @examples
-#' \dontrun{
-#' # Construct URL to download ABS data
-#' ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-#' pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-#' ref <- "jul-2023/" # Reference period
-#' cat <- "620200" # Catalogue number
-#' tab <- "1" # Table number
-#' ext <- ".xlsx" # File extension
-#' URL <- paste0(ABS, pub, ref, cat, tab, ext)
+#' # Load data
+#' data("inventories")
 #'
-#' # Run function
-#' emp <- download_ts(URL)
-#' emp_total <- create_tsdf_comp(emp, "Employed total ;  Persons ;")
-#' }
+#' # Create long data frame for a given data item description
+#' item <- "Inventories ;  Total (State) ;  Mining ;  Current Price ;  TOTAL (SCP_SCOPE) ;"
+#' inventories_df_mining <- create_tsdf_comp(inventories, item)
 #'
 #' @export
 create_tsdf_comp <- function(series, dataItem) {
@@ -1053,20 +1013,11 @@ create_tsdf_comp <- function(series, dataItem) {
 #' and trend series, for all data item descriptions
 #' 
 #' @examples
-#' \dontrun{
-#' # Construct URL to download ABS data
-#' ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-#' pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-#' ref <- "jul-2023/" # Reference period
-#' cat <- "620200" # Catalogue number
-#' tab <- "1" # Table number
-#' ext <- ".xlsx" # File extension
-#' URL <- paste0(ABS, pub, ref, cat, tab, ext)
+#' # Load data
+#' data("inventories")
 #'
-#' # Run function
-#' emp <- download_ts(URL)
-#' emp_all <- create_tsdf_table(emp)
-#' }
+#' # Create long data frame for all data item descriptions
+#' inventories_df_all <- create_tsdf_table(inventories)
 #'
 #' @export
 create_tsdf_table <- function(series) {
@@ -1153,23 +1104,12 @@ create_tsdf_table <- function(series) {
 #' single data item description
 #' 
 #' @examples
-#' \dontrun{
-#' # Construct URL to download ABS data
-#' ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-#' pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-#' ref <- "jul-2023/" # Reference period
-#' cat <- "620200" # Catalogue number
-#' tab <- "1" # Table number
-#' ext <- ".xlsx" # File extension
-#' URL <- paste0(ABS, pub, ref, cat, tab, ext)
+#' # Load data
+#' data("inventories")
 #'
-#' # Run function
-#' emp <- download_ts(URL)
-#' create_tsplot_comp(emp, "Employed total ;  Persons ;")
-#'
-#' # Plot still produced even when ABS seasonally adjusted and/or trend non-existent:
-#' create_tsplot_comp(emp, "Civilian population aged 15 years and over ;  Persons ;")
-#' }
+#' # Create plots for a given data item description
+#' item <- "Inventories ;  Total (State) ;  Mining ;  Current Price ;  TOTAL (SCP_SCOPE) ;"
+#' inventories_mining_plots <- create_tsplot_comp(inventories, item)
 #'
 #' @export
 create_tsplot_comp <- function(series, dataItem) {
@@ -1329,20 +1269,11 @@ create_tsplot_comp <- function(series, dataItem) {
 #' data item descriptions
 #' 
 #' @examples
-#' \dontrun{
-#' # Construct URL to download ABS data
-#' ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-#' pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-#' ref <- "jul-2023/" # Reference period
-#' cat <- "620200" # Catalogue number
-#' tab <- "1" # Table number
-#' ext <- ".xlsx" # File extension
-#' URL <- paste0(ABS, pub, ref, cat, tab, ext)
+#' # Load data
+#' data("inventories")
 #'
-#' # Run function
-#' emp <- download(URL)
-#' emp_plots <- create_tsplot_table(emp)
-#' }
+#' # Create plots for all data item descriptions
+#' inventories_all_plots <- create_tsplot_table(inventories)
 #'
 #' @export
 create_tsplot_table <- function(series) {

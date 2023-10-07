@@ -91,6 +91,10 @@ You can install the development version of `timeseriescomparison` from [GitHub](
 devtools::install_github("a-s-russo/time-series-comparison@fusen")
 ```
 
+Note that `RJDemetra` requires the [`rJava`](https://cran.r-project.org/web/packages/rJava/index.html)
+package and Java SE version 8 or higher. For troubleshooting, consult the
+[installation manual](https://github.com/jdemetra/rjdemetra/wiki/Installation-manual).
+
 ## Example
 
 Compare the seasonally adjusted series for all employed persons in Australia

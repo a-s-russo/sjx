@@ -22,3 +22,14 @@ Seasonal adjustment and trending are performed using the \code{RJDemetra}
 interface to JDemetra+ (version 2). Execution is done using X-13 rather than
 SEATS; otherwise all default values are used in the execution call.
 }
+\examples{
+# Load data
+data("inventories")
+
+# Create original series
+inventories_mining_orig <- create_ts(inventories, "A3531252X")
+
+# Generate seasonally adjusted series
+inventories_mining_seas <- run_RJD(inventories_mining_orig)
+
+}

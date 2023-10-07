@@ -27,19 +27,10 @@ package, a NULL object (rather than an error) is returned if the series ID is
 missing.
 }
 \examples{
-\dontrun{
-# Construct URL to download ABS data
-ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-ref <- "jul-2023/" # Reference period
-cat <- "620200" # Catalogue number
-tab <- "1" # Table number
-ext <- ".xlsx" # File extension
-URL <- paste0(ABS, pub, ref, cat, tab, ext)
+# Load data
+data("inventories")
 
-# Run function
-emp <- download_ts(URL)
-emp_total <- create_ts(emp, "A84423127L")
-}
+# Create a time series object for a given series ID
+inventories_mining_orig <- create_ts(inventories, "A3531252X")
 
 }

@@ -36,19 +36,11 @@ plotted. (For example, plotting with ggplot2 requires data frames, not time
 series objects.)
 }
 \examples{
-\dontrun{
-# Construct URL to download ABS data
-ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-ref <- "jul-2023/" # Reference period
-cat <- "620200" # Catalogue number
-tab <- "1" # Table number
-ext <- ".xlsx" # File extension
-URL <- paste0(ABS, pub, ref, cat, tab, ext)
+# Load data
+data("inventories")
 
-# Run function
-emp <- download_ts(URL)
-emp_total <- create_tsdf_comp(emp, "Employed total ;  Persons ;")
-}
+# Create long data frame for a given data item description
+item <- "Inventories ;  Total (State) ;  Mining ;  Current Price ;  TOTAL (SCP_SCOPE) ;"
+inventories_df_mining <- create_tsdf_comp(inventories, item)
 
 }

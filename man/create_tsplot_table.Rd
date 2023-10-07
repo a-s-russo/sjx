@@ -49,19 +49,10 @@ the \code{download_ts} function)
 }
 }
 \examples{
-\dontrun{
-# Construct URL to download ABS data
-ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-ref <- "jul-2023/" # Reference period
-cat <- "620200" # Catalogue number
-tab <- "1" # Table number
-ext <- ".xlsx" # File extension
-URL <- paste0(ABS, pub, ref, cat, tab, ext)
+# Load data
+data("inventories")
 
-# Run function
-emp <- download(URL)
-emp_plots <- create_tsplot_table(emp)
-}
+# Create plots for all data item descriptions
+inventories_all_plots <- create_tsplot_table(inventories)
 
 }

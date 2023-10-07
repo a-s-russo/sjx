@@ -15,22 +15,16 @@ returned from \code{download_ts} containing series data and metadata.
 }
 \details{
 An error is thrown if the object does not conform to the required format.
-Otherwise the function returns nothing.
+Otherwise the function returns nothing. Only limited error checking is
+undertaken, such as checking for appropriate variable names and types.
+Logical checks for aspects such as consistency within or between the series
+data and metadata are not performed.
 }
 \examples{
-\dontrun{
-# Construct URL to download ABS data
-ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-ref <- "jul-2023/" # Reference period
-cat <- "620200" # Catalogue number
-tab <- "1" # Table number
-ext <- ".xlsx" # File extension
-URL <- paste0(ABS, pub, ref, cat, tab, ext)
+# Load data
+data("inventories")
 
-# Run function
-emp <- download_ts(URL)
-check_series(emp)
-}
+# Check the series object for validity (nothing happens if valid)
+check_series(inventories)
 
 }

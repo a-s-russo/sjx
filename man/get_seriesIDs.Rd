@@ -24,19 +24,10 @@ preserving the original ordering in the series metadata ('Index' sheet of the
 downloaded spreadsheet) for series that remain after data cleaning.
 }
 \examples{
-\dontrun{
-# Construct URL to download ABS data
-ABS <- "https://www.abs.gov.au/statistics/labour/" # ABS website (for labour statistics)
-pub <- "employment-and-unemployment/labour-force-australia/" # Publication
-ref <- "jul-2023/" # Reference period
-cat <- "620200" # Catalogue number
-tab <- "1" # Table number
-ext <- ".xlsx" # File extension
-URL <- paste0(ABS, pub, ref, cat, tab, ext)
+# Load data
+data("inventories")
 
-# Run function
-emp <- download_ts(URL)
-get_seriesIDs(emp)
-}
+# Extract all series IDs
+get_seriesIDs(inventories)
 
 }
