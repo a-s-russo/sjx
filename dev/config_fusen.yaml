@@ -15,7 +15,7 @@ flat_save_data.Rmd:
   path: dev/flat_save_data.Rmd
   state: active
   R: R/download_ts.R
-  tests: []
+  tests: tests/testthat/test-download_ts.R
   vignettes: vignettes/dev_save_data.Rmd
   inflate:
     flat_file: dev/flat_save_data.Rmd

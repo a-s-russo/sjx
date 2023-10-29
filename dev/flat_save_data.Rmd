@@ -467,6 +467,31 @@ check_series <- function(series) {
 }
 ```
 
+```{r tests-check_series}
+library(testthat)
+
+test_that("Incorrect data", {
+  expect_error(check_series(mtcars))
+})
+
+test_that("Incorrect data", {
+  expect_error(check_series(NULL))
+})
+
+test_that("Incorrect data", {
+  expect_error(check_series(list(
+    data = 1:3, meta = c('a', 'b', 'c')
+  )))
+})
+
+test_that("Incorrect data", {
+  expect_error(check_series(list(
+    var1 = 1:3, var2 = c('a', 'b', 'c')
+  )))
+})
+
+```
+
 ```{r function-get_seriesIDs, eval=FALSE}
 #' @title
 #' Get all series IDs from series metadata
