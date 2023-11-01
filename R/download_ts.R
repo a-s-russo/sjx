@@ -48,13 +48,14 @@
 #'
 #' @param url The download link to the data
 #' 
-#' @importFrom dplyr all_of any_of filter first last mutate rename select select_if slice_tail
+#' @importFrom dplyr all_of any_of filter first last mutate nth rename select select_if slice_tail
 #' @importFrom httr http_error
 #' @importFrom janitor clean_names
-#' @importFrom lubridate month quarter year ymd
+#' @importFrom lubridate day month quarter year ymd
 #' @importFrom readxl excel_sheets read_excel
 #' @importFrom rlang .data
 #' @importFrom stats na.omit
+#' @importFrom stringr str_split_1
 #' @importFrom utils download.file
 #' @importFrom zoo na.trim
 #' 
@@ -313,7 +314,7 @@ download_ts <- function(url) {
       ifelse(freq_num == 12, month(ymd(span_end)), quarter(ymd(span_end)))
   }
   
-  # Create variables for the publication and table titles
+  # Create variables for publication and table titles
   titles <-
     read_excel(
       raw_data,
@@ -324,9 +325,34 @@ download_ts <- function(url) {
     )
   title_pub <- as.character(titles[1, 1])
   title_tab <- as.character(titles[2, 1])
+  
+  # Create variable for the reference period
+  # (Could grab reference period more easily via 'max(series_data$period)',
+  # but in theory they could differ; to be sure, proceed as follows instead.)
+  
+  ref_period_URL <- nth(str_split_1(url, "/"), -2)
+  # Reference period is contained in URL
+  # (assumes all URLs do indeed contain it, and at the same location)
+  
+  ref_period_month <- first(str_split_1(ref_period_URL, "-"))
+  # Unfortunately, URL is not consistent regarding reference period,
+  # as some contain 'quarter' word
+  
+  ref_period_day <- day(max(series_data$period))
+  # Should always be '01', but extract this way in case not,
+  # to align with other date variables; use of 'max' here is arbitrary
+  
+  ref_period_year <- last(str_split_1(ref_period_URL, "-"))
+  # Unfortunately, URL is not consistent regarding reference period,
+  # as some contain 'quarter' word
+  
+  # Append variables to series metadata
+  ref_period_date <-
+    ymd(paste(ref_period_year, ref_period_month, ref_period_day))
   series_metadata <- series_metadata |>
     mutate(publication = title_pub,
-           table = title_tab)
+           table = title_tab,
+           ref_period = ref_period_date)
   
   # Generate list of series data and metadata
   results <- list(data = series_data, meta = series_metadata)
