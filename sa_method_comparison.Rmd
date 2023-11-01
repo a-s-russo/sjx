@@ -1,7 +1,5 @@
 ---
 title: "Comparison of seasonal adjustment and trending methods on Australian data"
-author: "A Russo"
-date: "`r Sys.Date()`"
 output: html_document
 ---
 
@@ -26,8 +24,8 @@ res <- lapply(pubs, function(x) {
   knitr::knit_child(text = c(
 
     '\n',
-    '## `r x$meta$publication[1]` (`r format(max(x$meta$end), "%b %Y")`)',
-    '## `r x$meta$table[1]`',
+    '## `r unique(x$meta$publication)` (`r format(unique(x$meta$ref_period), "%b %Y")`)',
+    '## `r unique(x$meta$table)`',
     '\n',
     '```{r, out.height="100%", out.width="100%"}',
     'create_tsplot_table(x)',

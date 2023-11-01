@@ -960,11 +960,11 @@
       "Version": "0.1",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "time-series-comparison",
       "RemoteUsername": "a-s-russo",
+      "RemoteRepo": "time-series-comparison",
       "RemoteRef": "fusen",
-      "RemoteSha": "7e600a8226f2e80fa2f9ec54beaba0121a374558",
+      "RemoteSha": "57f57d73d809c29d1270ab7f11c1cf30ac3979b0",
+      "RemoteHost": "api.github.com",
       "Requirements": [
         "R",
         "RJDemetra",
@@ -983,7 +983,7 @@
         "utils",
         "zoo"
       ],
-      "Hash": "24dacf506249d84a7a3a631d2daa1a92"
+      "Hash": "6a9a5bcd2914ea20d1e2e59b87464f71"
     },
     "snakecase": {
       "Package": "snakecase",

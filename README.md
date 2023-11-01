@@ -3,8 +3,8 @@ Comparison of X-13ARIMA-SEATS and JDemetra+ seasonal adjustment methods on ABS d
 
 # How to run
 
-- Clone the repository: `git clone git@github.com:a-s-russo/sjx.git`.
-- Switch to the `pipeline` branch: `git checkout pipeline`.
+- Clone the repository: `https://github.com/a-s-russo/sjx.git`.
+- Switch to the `pipeline` branch: `git switch pipeline`.
 - Start an R session in the folder and run `renv::restore()`
    to install the project’s dependencies.
 - Run the pipeline with `targets::tar_make()`.
