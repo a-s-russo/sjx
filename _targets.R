@@ -10,12 +10,18 @@ read_data <- function(data_name, package_name) {
        package = package_name,
        envir = temp)
   
-  get(data_name, envir = temp)
+  get(data_name,
+      envir = temp)
 }
 
 list(
   tar_target(inventories,
-             read_data("inventories", "sjx")),
-  tar_target(sales, read_data("sales", "sjx")),
-  tar_render(analyse, "sa_method_comparison.Rmd")
+             read_data("inventories",
+                       "sjx")),
+  tar_target(sales,
+             read_data("sales",
+                       "sjx")),
+  tar_render(analyse,
+             "sa_method_comparison.Rmd",
+             output_dir = "/home/sjx/pipeline_output")
 )

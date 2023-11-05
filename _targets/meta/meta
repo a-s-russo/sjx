@@ -1,5 +1,0 @@
-name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
-analyse|stem|233b3e980109f957|3d1325cca6b75075|573e184d911d6f43|-371669019|sa_method_comparison.html*sa_method_comparison.Rmd|t19662.0616198971s|00821561ed06c8f6|2388376|file|local|vector|||36.64||
-inventories|stem|9768784b0cb8a03c|a47b81321688a685|ce0d84c74589a961|267393052||t19662.0598989827s|eddc54a58e45985d|10700|rds|local|vector|||1.25||
-read_data|function|ffcd41399f6fef5f|||||||||||||||
-sales|stem|3cf56b6947d4fbb1|b730deff3191c20d|ce0d84c74589a961|1936003971||t19662.0599129503s|5c88ef1d8e6334af|16228|rds|local|vector|||0||
