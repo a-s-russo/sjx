@@ -1,0 +1,6 @@
+name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
+.Random.seed|object|c687ea0c3dcb873a|||||||||||||||
+analyse|stem|f249c3fb82e7e136|3d1325cca6b75075|d6d2c4d0620a23e1|-371669019|sa_method_comparison.html*sa_method_comparison.Rmd|t19697.0641394855s|a5a1552cc786e5d7|5086139|file|local|vector|||25.501||
+inventories|stem|05ad155addfdbf4b|a47b81321688a685|ce0d84c74589a961|267393052||t19697.0638450397s|eddc54a58e45985d|10700|rds|local|vector|||0.944||
+read_data|function|ffcd41399f6fef5f|||||||||||||||
+sales|stem|e4a2cba67078665b|b730deff3191c20d|ce0d84c74589a961|1936003971||t19697.0638453175s|5c88ef1d8e6334af|16228|rds|local|vector|||0.003||

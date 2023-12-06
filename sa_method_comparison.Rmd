@@ -1,0 +1,39 @@
+---
+title: "Comparison of seasonal adjustment and trending methods on Australian data"
+output: html_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, results = 'hide')
+```
+
+```{r}
+tar_load(inventories)
+tar_load(sales)
+```
+
+```{r plot-data, results='asis'}
+
+# Combine data
+pubs <-
+  list(inventories,
+       sales)
+
+res <- lapply(pubs, function(x) {
+
+  knitr::knit_child(text = c(
+
+    '\n',
+    '## `r unique(x$meta$publication)` (`r format(unique(x$meta$ref_period), "%b %Y")`)',
+    '## `r unique(x$meta$table)`',
+    '\n',
+    '```{r, out.height="100%", out.width="100%"}',
+    'create_tsplot_table(x)',
+    '```'
+     ),
+     envir = environment(),
+     quiet = TRUE)
+})
+
+cat(unlist(res), sep = "\n")
+```
