@@ -50,30 +50,32 @@ jobs:
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update && sudo apt-get install -y
-          libssl-dev
-          libzmq3-dev
-          libglpk-dev
-          libxml2-dev
-          libcairo2-dev
-          libgit2-dev
-          default-libmysqlclient-dev
-          libpq-dev
-          libsasl2-dev
-          libsqlite3-dev
-          libssh2-1-dev
-          libxtst6
-          libcurl4-openssl-dev
-          libharfbuzz-dev
-          libfribidi-dev
-          libfreetype6-dev
-          libpng-dev
-          libtiff5-dev
-          libjpeg-dev
-          libxt-dev
-          unixodbc-dev
-          wget
-          pandoc
+          sudo apt-get update && sudo apt-get install -y \
+          libssl-dev \
+          libzmq3-dev \
+          libglpk-dev \
+          libxml2-dev \
+          libcairo2-dev \
+          libgit2-dev \
+          default-libmysqlclient-dev \
+          libpq-dev \
+          libsasl2-dev \
+          libsqlite3-dev \
+          libssh2-1-dev \
+          libxtst6 \
+          libcurl4-openssl-dev \
+          libharfbuzz-dev \
+          libfribidi-dev \
+          libfreetype6-dev \
+          libpng-dev \
+          libtiff5-dev \
+          libjpeg-dev \
+          libxt-dev \
+          unixodbc-dev \
+          wget \
+          pandoc \
+          make \
+          default-jdk
 
       - name: Cache packages
         uses: actions/cache@v1
