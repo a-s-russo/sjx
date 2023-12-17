@@ -1,0 +1,31 @@
+name: Reproducible pipeline
+
+on:
+  push:
+    branches:
+      - ga_docker
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+      with:
+        ref: ga_docker
+      
+    - name: Build the Docker image
+      run: docker build -t sjx_image .
+      
+    - name: Docker Run Action
+      run: >
+        docker run --rm --name sjx_container -v 
+        /github/workspace/shared_folder:/home/sjx/shared_folder:rw 
+        sjx_image
+      
+    - uses: actions/upload-artifact@v3
+      with:
+        name: sjx_output_${{ github.sha }}
+        path: /github/workspace/shared_folder/

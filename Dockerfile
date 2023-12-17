@@ -1,4 +1,4 @@
-FROM rocker/r-ver:4.3.1
+FROM shogi/r_4.3.1:main-9df9b9a7a57ae04feb96e10e358129a68399aa03
 
 RUN apt-get update && apt-get install -y \
     libglpk-dev \
